@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dashboard – Crecimiento VCS vs Deuda Corporativa (SOLES)</title>
+<style>
+:root{
+  --bg:#fff; --card:#fff; --border:#e6e8ef; --text:#111827; --muted:#6b7280;
+  --shadow:0 10px 24px rgba(0,0,0,.08); --radius:16px;
+  --okbg:#f2fff8; --okbd:#c7f9df; --oktx:#065f46;
+  --wbg:#fff9ed; --wbd:#ffe6b3; --wtx:#92400e;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text);}
+.wrap{max-width:1280px;margin:auto;padding:clamp(16px,2vw,24px);}
+h1{margin:0;font-size:clamp(18px,2.2vw,24px);}
+.sub{color:var(--muted);font-size:clamp(12px,1.4vw,13px);line-height:1.4;margin-top:6px;}
+.top{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;}
+.pill{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--border);
+  padding:8px 10px;border-radius:999px;color:var(--muted);font-size:12px;background:#fff;box-shadow:var(--shadow);}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:16px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:14px;}
+.card h2{margin:0 0 8px 0;font-size:clamp(14px,1.6vw,15px);}
+.note{font-size:12px;color:var(--muted);line-height:1.45;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:10px;}
+.kpi{border:1px solid var(--border);border-radius:14px;padding:10px;background:#fff;}
+.kpi .lbl{color:var(--muted);font-size:11px;}
+.kpi .val{font-size:16px;font-weight:800;margin-top:4px;}
+.kpi .tag{color:var(--muted);font-size:11px;margin-top:4px;}
+.badge-ok{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;font-size:11px;
+  background:var(--okbg);border:1px solid var(--okbd);color:var(--oktx);}
+.badge-w{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;font-size:11px;
+  background:var(--wbg);border:1px solid var(--wbd);color:var(--wtx);}
+.tableWrap{overflow:auto;border:1px solid var(--border);border-radius:14px;}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:760px;}
+th,td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}
+th{background:#fafbff;color:var(--muted);font-weight:700;}
+tr:last-child td{border-bottom:none;}
+svg{width:100%;height:auto;display:block;}
+.legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+.legend span{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;}
+.dot{width:10px;height:10px;border-radius:50%;}
+.footer{margin-top:10px;color:var(--muted);font-size:11px;line-height:1.35;}
+hr{border:none;border-top:1px solid var(--border);margin:12px 0;}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Crecimiento VCS vs Deuda Corporativa (SOLES) – 2 años</h1>
+      <div class="sub">
+        Ventana: <b>06/02/2024 → 03/02/2026</b>. Fuente: Reportes de Valor Cuota Credicorp 2024 + 2025 (SOLES).
+        <br/>Incluye: <b>crudo</b> (tal cual) y <b>ponderado/ajustado</b> (cap P90 mensual, para que un “mes extraordinario” no domine).
+      </div>
+    </div>
+    <div class="pill">
+      <span>Umbral neto</span><b>5.5% anual</b>
+      <span class="note">por impuestos</span>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div class="card" style="grid-column:1/-1;">
+      <h2>Resumen rápido (en simple)</h2>
+      <ul class="note" style="margin:8px 0 0 18px;">
+        <li><b>Crecimiento VCS</b>: más retorno, pero con más subidas y bajadas (más riesgo).</li>
+        <li><b>Deuda Corporativa</b>: retorno menor, pero mucho más estable (menos sustos).</li>
+        <li>La métrica <b>“ajustada”</b> ayuda a ver una rentabilidad más “realista” si hubo meses excepcionalmente altos.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Métricas crudas (tal cual)</h2>
+      <div class="kpis" id="kpiRaw"></div>
+      <div class="footer">Volatilidad = variación diaria anualizada. Max drawdown = peor caída desde un pico.</div>
+    </div>
+
+    <div class="card">
+      <h2>Métricas ponderadas/ajustadas (anti-pico)</h2>
+      <div class="note">
+        Método: calculo retornos <b>mensuales</b> y recorto los meses “demasiado buenos” al <b>percentil 90 (P90)</b> del propio fondo.
+        Eso reduce el efecto de picos.
+      </div>
+      <div class="kpis" id="kpiAdj"></div>
+      <div class="footer">Cap mensual P90: Crecimiento ≈ 3.99%/mes; Deuda ≈ 1.20%/mes.</div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1;">
+      <h2>Gráfico 1 – Evolución real (línea diaria, base 100)</h2>
+      <div class="note">Ambos comienzan en 100. Si sube a 120, significa +20% acumulado desde el inicio de la ventana.</div>
+      <div id="chartRaw"></div>
+      <div class="legend">
+        <span><span class="dot" style="background:#0b5fff"></span> Crecimiento VCS (raw)</span>
+        <span><span class="dot" style="background:#f97316"></span> Deuda Corporativa (raw)</span>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1;">
+      <h2>Gráfico 2 – Evolución “ajustada” (mensual, base 100)</h2>
+      <div class="note">Muestra cómo se vería el crecimiento si limitamos meses extraordinarios (cap P90 mensual).</div>
+      <div id="chartAdj"></div>
+      <div class="legend">
+        <span><span class="dot" style="background:#2563eb"></span> Crecimiento (ajustado)</span>
+        <span><span class="dot" style="background:#ea580c"></span> Deuda (ajustado)</span>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1;">
+      <h2>Tabla comparativa (crudo vs ajustado)</h2>
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fondo</th>
+              <th>CAGR crudo</th>
+              <th>Vol anual (crudo)</th>
+              <th>Max drawdown (crudo)</th>
+              <th>Peor mes</th>
+              <th>Mejor mes</th>
+              <th>CAGR ajustado (cap P90)</th>
+            </tr>
+          </thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+      </div>
+      <div class="footer">
+        Interpretación simple: si el <b>ajustado</b> baja mucho vs el <b>crudo</b>, el retorno dependió de meses muy fuertes.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* =========================
+   DATOS (pre-calculados)
+   Ventana: 2024-02-06 → 2026-02-03
+   Normalizados base 100
+   ========================= */
+
+/* Métricas crudas (anualizadas) */
+const METRICS_RAW = [
+  {
+    name:"Crecimiento VCS",
+    cagr: 20.90,
+    vol: 10.01,
+    maxdd: -7.25,
+    worstM: -2.12,
+    bestM:  6.25,
+    pass: true
+  },
+  {
+    name:"Deuda Corporativa (Soles)",
+    cagr: 8.40,
+    vol: 1.58,
+    maxdd: -0.84,
+    worstM: -0.68,
+    bestM:  2.01,
+    pass: true
+  }
+];
+
+/* Ajustado: cap P90 mensual */
+const METRICS_ADJ = [
+  { name:"Crecimiento VCS", cagr_adj: 13.52, capM: 3.99 },
+  { name:"Deuda Corporativa (Soles)", cagr_adj: 7.72, capM: 1.20 }
+];
+
+/* Puntos (downsample) – raw diario */
+const PTS_RAW_CREC = {{PTS_RAW_CREC}};
+const PTS_RAW_DEU  = {{PTS_RAW_DEU}};
+
+/* Puntos – ajustado mensual */
+const PTS_ADJ_CREC = {{PTS_ADJ_CREC}};
+const PTS_ADJ_DEU  = {{PTS_ADJ_DEU}};
+
+/* =========================
+   Render helpers
+   ========================= */
+function pct(x){ return (x>=0?x.toFixed(2):x.toFixed(2)) + "%"; }
+
+function kpiBlock(metrics){
+  return metrics.map(m=>{
+    const badge = m.pass ? `<span class="badge-ok">≥ 5.5%</span>` : `<span class="badge-w">&lt; 5.5%</span>`;
+    return `
+      <div class="kpi">
+        <div class="lbl">${m.name} ${m.pass!==undefined?badge:""}</div>
+        <div class="val">${pct(m.cagr || m.cagr_adj)}</div>
+        <div class="tag">${m.vol!==undefined?`Vol: ${pct(m.vol)} · Max caída: ${pct(m.maxdd)}`:`Cap mensual P90: ${m.capM.toFixed(2)}%`}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderTable(){
+  const byNameAdj = Object.fromEntries(METRICS_ADJ.map(x=>[x.name,x]));
+  const rows = METRICS_RAW.map(m=>{
+    const a = byNameAdj[m.name];
+    return `
+      <tr>
+        <td><b>${m.name}</b></td>
+        <td><b>${pct(m.cagr)}</b></td>
+        <td>${pct(m.vol)}</td>
+        <td>${pct(m.maxdd)}</td>
+        <td>${pct(m.worstM)}</td>
+        <td>${pct(m.bestM)}</td>
+        <td><b>${pct(a.cagr_adj)}</b></td>
+      </tr>
+    `;
+  }).join("");
+  document.getElementById("tblBody").innerHTML = rows;
+}
+
+function renderLineChart(containerId, seriesA, seriesB, colorA, colorB){
+  // Compute min/max
+  const all = seriesA.concat(seriesB).map(p=>p.v);
+  const minV = Math.min(...all);
+  const maxV = Math.max(...all);
+  const pad = (maxV-minV)*0.08 || 1;
+  const lo = minV - pad;
+  const hi = maxV + pad;
+
+  const W=1100, H=360, L=56, R=18, T=18, B=42;
+  const iw=W-L-R, ih=H-T-B;
+
+  const xScale = (i,n)=> L + (i/(n-1))*iw;
+  const yScale = v => T + (1-(v-lo)/(hi-lo))*ih;
+
+  function pathFor(arr){
+    return arr.map((p,i)=>`${i===0?"M":"L"} ${xScale(i,arr.length).toFixed(2)} ${yScale(p.v).toFixed(2)}`).join(" ");
+  }
+
+  // y ticks
+  const ticks = 5;
+  const lines = Array.from({length:ticks+1},(_,i)=>{
+    const y = T + (i/ticks)*ih;
+    const val = (hi - (i/ticks)*(hi-lo));
+    return {y,val};
+  });
+
+  const pA = pathFor(seriesA);
+  const pB = pathFor(seriesB);
+
+  const startLbl = seriesA[0]?.d || "";
+  const endLbl   = seriesA[seriesA.length-1]?.d || "";
+
+  const svg = `
+  <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="line chart">
+    <rect x="${L}" y="${T}" width="${iw}" height="${ih}" fill="#fff" stroke="#e6e8ef" rx="14"></rect>
+
+    ${lines.map(t=>`
+      <line x1="${L}" y1="${t.y}" x2="${W-R}" y2="${t.y}" stroke="#eef2f7" />
+      <text x="12" y="${t.y+4}" font-size="11" fill="#6b7280">${t.val.toFixed(0)}</text>
+    `).join("")}
+
+    <path d="${pA}" fill="none" stroke="${colorA}" stroke-width="2.5"></path>
+    <path d="${pB}" fill="none" stroke="${colorB}" stroke-width="2.5"></path>
+
+    <text x="${L}" y="${H-14}" font-size="11" fill="#6b7280">${startLbl}</text>
+    <text x="${W-R}" y="${H-14}" font-size="11" fill="#6b7280" text-anchor="end">${endLbl}</text>
+  </svg>
+  `;
+  document.getElementById(containerId).innerHTML = svg;
+}
+
+/* =========================
+   Inject precomputed points
+   ========================= */
+function hydrate(template){
+  // no-op: points already embedded
+}
+
+/* =========================
+   Render
+   ========================= */
+document.getElementById("kpiRaw").innerHTML = kpiBlock(METRICS_RAW);
+document.getElementById("kpiAdj").innerHTML = kpiBlock(METRICS_ADJ);
+
+renderLineChart("chartRaw", PTS_RAW_CREC, PTS_RAW_DEU, "#0b5fff", "#f97316");
+renderLineChart("chartAdj", PTS_ADJ_CREC, PTS_ADJ_DEU, "#2563eb", "#ea580c");
+
+renderTable();
+</script>
+</body>
+</html>
