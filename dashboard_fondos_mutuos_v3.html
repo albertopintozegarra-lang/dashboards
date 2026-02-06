@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard simple – Fondos en SOLES (2 años)</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --card:#ffffff;
+      --border:#e6e8ef;
+      --text:#111827;
+      --muted:#6b7280;
+
+      --blue:#0b5fff;   /* Credicorp */
+      --purple:#6d28d9; /* BBVA */
+      --green:#0f766e;  /* SURA */
+
+      --shadow:0 10px 26px rgba(17,24,39,.08);
+      --radius:16px;
+      --grid:#eef2f7;
+
+      --okbg:#f2fff8; --okbd:#c7f9df; --oktx:#065f46;
+      --wbg:#fff9ed;  --wbd:#ffe6b3;  --wtx:#92400e;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:var(--bg); color:var(--text);}
+    .wrap{max-width:1100px; margin:0 auto; padding:22px 16px 40px;}
+    h1{margin:0; font-size:22px;}
+    .sub{color:var(--muted); font-size:13px; line-height:1.4; margin-top:6px;}
+    .pill{display:inline-flex; gap:10px; align-items:center; border:1px solid var(--border); padding:8px 10px; border-radius:999px; color:var(--muted); font-size:12px; background:#fff; box-shadow:var(--shadow);}
+    .top{display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; align-items:flex-end;}
+
+    .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:12px; margin-top:14px;}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px;}
+    .span-12{grid-column:span 12;}
+    .span-8{grid-column:span 8;}
+    .span-6{grid-column:span 6;}
+    .span-4{grid-column:span 4;}
+    @media(max-width:920px){.span-8,.span-6,.span-4{grid-column:span 12;}}
+
+    .title{margin:0 0 6px 0; font-size:15px;}
+    .note{color:var(--muted); font-size:12px; line-height:1.45;}
+    .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px;}
+    .kpi{border:1px solid var(--border); border-radius:14px; padding:10px; background:#fff;}
+    .kpi .lbl{color:var(--muted); font-size:11px;}
+    .kpi .val{font-size:16px; font-weight:800; margin-top:4px;}
+    .kpi .tag{color:var(--muted); font-size:11px; margin-top:4px;}
+    @media(max-width:920px){.kpis{grid-template-columns:repeat(2,1fr);}}
+
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; font-size:11px; border:1px solid var(--border); background:#fff; color:var(--muted); white-space:nowrap;}
+    .b-ok{background:var(--okbg); border-color:var(--okbd); color:var(--oktx);}
+    .b-w{background:var(--wbg); border-color:var(--wbd); color:var(--wtx);}
+    .dot{width:10px; height:10px; border-radius:50%;}
+    .legend{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center;}
+
+    table{width:100%; border-collapse:collapse; border:1px solid var(--border); border-radius:14px; overflow:hidden;}
+    th,td{padding:9px 10px; font-size:12px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top;}
+    th{background:#fafbff; color:var(--muted); font-weight:800;}
+    tr:last-child td{border-bottom:none;}
+
+    .hr{height:1px; background:var(--border); margin:12px 0;}
+    .bigBox{border-left:4px solid var(--blue); background:#f6f9ff; border-radius:12px; padding:10px 12px; font-size:13px; line-height:1.45;}
+    .bigBox.green{border-left-color:var(--green); background:#f4fbf9;}
+    svg{width:100%; height:auto; display:block;}
+    .footer{margin-top:10px; font-size:11px; color:var(--muted);}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Dashboard simple – Fondos en SOLES (2 años)</h1>
+        <div class="sub">
+          Periodo: <b>06/02/2024 → 03/02/2026</b>. Aquí comparamos fondos en soles de <b>Credicorp</b>, <b>BBVA</b> y <b>SURA</b>.
+          <br/>
+          Regla principal: queremos estar por encima de <b>5.5% al año</b> (por impuestos).
+        </div>
+      </div>
+      <div class="pill">
+        <span>Referencia</span>
+        <b>Depósito ~5%</b>
+        <span class="note">| Meta: ≥ 5.5%</span>
+      </div>
+    </div>
+
+    <section class="grid">
+
+      <div class="card span-12">
+        <h2 class="title">¿Qué significa “crudo” y “ajustado”?</h2>
+        <div class="note">
+          <b>Crudo</b> = el rendimiento tal cual pasó en estos 2 años. <br/>
+          <b>Ajustado</b> = lo mismo, pero “bajamos un poco el efecto” de meses excepcionalmente buenos (para no quedarnos con una cifra inflada por un pico).
+        </div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="lbl">Lo que buscamos</div>
+            <div class="val">≥ 5.5% al año</div>
+            <div class="tag">para que valga la pena vs impuestos</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Si quieres más ganancia</div>
+            <div class="val">aceptas más riesgo</div>
+            <div class="tag">puede bajar más en el camino</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Si quieres más tranquilidad</div>
+            <div class="val">ganas menos</div>
+            <div class="tag">pero con caídas pequeñas</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">“Ajustado” sirve para</div>
+            <div class="val">evitar engaños</div>
+            <div class="tag">por un año muy bueno</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span-12">
+        <h2 class="title">Recomendación rápida (en sencillo)</h2>
+        <div class="bigBox">
+          <b>Para un buen equilibrio:</b> <b>Credicorp – Moderado VCS</b><br/>
+          Da una ganancia alta y (en estos 2 años) no tuvo “sustos” grandes.
+        </div>
+        <div style="height:10px"></div>
+        <div class="bigBox green">
+          <b>Para “casi depósito, pero mejor” (más tranquilo):</b><br/>
+          <b>Credicorp – Deuda Corporativa</b> o <b>BBVA – Renta Mediano Plazo</b>
+        </div>
+        <div class="hr"></div>
+        <div class="note">
+          <b>SURA Acciones</b> da más rendimiento, pero es de <b>riesgo alto</b> (puede caer más).
+          Si quieres estabilidad, no es el primero a elegir.
+        </div>
+      </div>
+
+      <div class="card span-12">
+        <h2 class="title">Tabla principal (SOLES) – Crudo vs Ajustado</h2>
+        <div class="note">“Ajustado” aquí es conservador (recorta meses demasiado buenos). Si “crudo” y “ajustado” son muy distintos, es señal de que hubo un pico fuerte.</div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Gestora</th>
+              <th>Fondo</th>
+              <th>Crudo (2 años)</th>
+              <th>Ajustado (2 años)</th>
+              <th>¿Cumple ≥ 5.5%?</th>
+              <th>Tipo simple</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Credicorp</td>
+              <td><b>Moderado VCS</b></td>
+              <td>9.80%</td>
+              <td><b>7.56%</b></td>
+              <td><span class="badge b-ok">Sí</span></td>
+              <td class="note">Equilibrado (buen balance)</td>
+            </tr>
+            <tr>
+              <td>Credicorp</td>
+              <td><b>Deuda Corporativa</b></td>
+              <td>8.40%</td>
+              <td><b>7.73%</b></td>
+              <td><span class="badge b-ok">Sí</span></td>
+              <td class="note">Conservador “depósito+”</td>
+            </tr>
+            <tr>
+              <td>BBVA</td>
+              <td><b>Renta Mediano Plazo</b></td>
+              <td>7.07%</td>
+              <td><b>6.60%</b></td>
+              <td><span class="badge b-ok">Sí</span></td>
+              <td class="note">Conservador “depósito+”</td>
+            </tr>
+            <tr>
+              <td>BBVA</td>
+              <td>Equilibrado Global</td>
+              <td>7.52%</td>
+              <td>7.01%</td>
+              <td><span class="badge b-ok">Sí</span></td>
+              <td class="note">Intermedio</td>
+            </tr>
+            <tr>
+              <td>Credicorp</td>
+              <td>Conservador Mediano Plazo</td>
+              <td>6.78%</td>
+              <td>6.38%</td>
+              <td><span class="badge b-ok">Sí</span></td>
+              <td class="note">Más tranquilo</td>
+            </tr>
+            <tr>
+              <td>SURA</td>
+              <td><b>SURA Acciones</b></td>
+              <td><b>31.39%</b></td>
+              <td><b>19.26%</b></td>
+              <td><span class="badge b-ok">Sí</span></td>
+              <td class="note">Riesgo alto (acciones)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="legend">
+          <span class="badge"><span class="dot" style="background:var(--blue)"></span> Credicorp</span>
+          <span class="badge"><span class="dot" style="background:var(--purple)"></span> BBVA</span>
+          <span class="badge"><span class="dot" style="background:var(--green)"></span> SURA</span>
+        </div>
+      </div>
+
+      <!-- SIMPLE CHART 1: Crudo vs Ajustado -->
+      <div class="card span-6">
+        <h2 class="title">Gráfico 1: Crudo vs Ajustado</h2>
+        <div class="note">Barras más altas = más ganancia. Si “crudo” está muy por encima de “ajustado”, hubo un pico fuerte.</div>
+
+        <!-- SVG bar chart (0–35) -->
+        <svg viewBox="0 0 520 300" role="img" aria-label="Crudo vs Ajustado">
+          <!-- frame -->
+          <rect x="52" y="18" width="450" height="230" fill="#fff" stroke="var(--border)" rx="12"></rect>
+
+          <!-- grid + labels -->
+          <g stroke="var(--grid)" stroke-width="1">
+            <line x1="52" y1="248" x2="502" y2="248"></line>
+            <line x1="52" y1="202" x2="502" y2="202"></line>
+            <line x1="52" y1="156" x2="502" y2="156"></line>
+            <line x1="52" y1="110" x2="502" y2="110"></line>
+            <line x1="52" y1="64"  x2="502" y2="64"></line>
+            <line x1="52" y1="18"  x2="502" y2="18"></line>
+          </g>
+          <g fill="var(--muted)" font-size="11">
+            <text x="18" y="252">0</text>
+            <text x="14" y="206">7</text>
+            <text x="14" y="160">14</text>
+            <text x="14" y="114">21</text>
+            <text x="14" y="68">28</text>
+            <text x="14" y="22">35</text>
+            <text x="52" y="285">Fondos (2 años)</text>
+            <text x="430" y="285">%</text>
+          </g>
+
+          <!-- Helper: height = (value/35)*230 ; y = 248 - height -->
+          <!-- Bars positions -->
+          <!-- 1) Credicorp Moderado: crudo 9.80, ajust 7.56 -->
+          <rect x="82"  y="183.6" width="20" height="64.4" fill="var(--blue)" opacity="0.85" rx="4"></rect>
+          <rect x="106" y="198.3" width="20" height="49.7" fill="var(--blue)" opacity="0.45" rx="4"></rect>
+
+          <!-- 2) Credicorp Deuda: 8.40 / 7.73 -->
+          <rect x="162" y="192.8" width="20" height="55.2" fill="var(--blue)" opacity="0.85" rx="4"></rect>
+          <rect x="186" y="197.2" width="20" height="50.8" fill="var(--blue)" opacity="0.45" rx="4"></rect>
+
+          <!-- 3) BBVA RMP: 7.07 / 6.60 -->
+          <rect x="242" y="201.5" width="20" height="46.5" fill="var(--purple)" opacity="0.85" rx="4"></rect>
+          <rect x="266" y="204.6" width="20" height="43.4" fill="var(--purple)" opacity="0.45" rx="4"></rect>
+
+          <!-- 4) BBVA Equilibrado: 7.52 / 7.01 -->
+          <rect x="322" y="198.6" width="20" height="49.4" fill="var(--purple)" opacity="0.85" rx="4"></rect>
+          <rect x="346" y="201.9" width="20" height="46.1" fill="var(--purple)" opacity="0.45" rx="4"></rect>
+
+          <!-- 5) Credicorp Cons MP: 6.78 / 6.38 -->
+          <rect x="402" y="203.5" width="20" height="44.5" fill="var(--blue)" opacity="0.85" rx="4"></rect>
+          <rect x="426" y="206.2" width="20" height="41.8" fill="var(--blue)" opacity="0.45" rx="4"></rect>
+
+          <!-- 6) SURA Acciones: 31.39 / 19.26 -->
+          <rect x="472" y="41.6" width="20" height="206.4" fill="var(--green)" opacity="0.85" rx="4"></rect>
+          <rect x="496" y="121.5" width="20" height="126.5" fill="var(--green)" opacity="0.45" rx="4"></rect>
+
+          <!-- labels -->
+          <g fill="var(--muted)" font-size="10">
+            <text x="78" y="268">Mod</text>
+            <text x="158" y="268">Deu</text>
+            <text x="238" y="268">RMP</text>
+            <text x="318" y="268">Eq</text>
+            <text x="398" y="268">Cons</text>
+            <text x="468" y="268">SURA</text>
+          </g>
+
+          <!-- legend -->
+          <g font-size="11" fill="var(--muted)">
+            <rect x="62" y="26" width="190" height="34" fill="#fff"></rect>
+            <rect x="72" y="36" width="14" height="10" fill="#111827" opacity="0.85"></rect>
+            <text x="92" y="44">Crudo</text>
+            <rect x="142" y="36" width="14" height="10" fill="#111827" opacity="0.45"></rect>
+            <text x="162" y="44">Ajustado</text>
+          </g>
+        </svg>
+
+        <div class="note">
+          Abreviaturas: <b>Mod</b>=Moderado VCS, <b>Deu</b>=Deuda Corp, <b>RMP</b>=Renta Mediano Plazo,
+          <b>Eq</b>=Equilibrado, <b>Cons</b>=Conservador Mediano Plazo.
+        </div>
+      </div>
+
+      <!-- SIMPLE CHART 2: Risk (Max Drawdown) -->
+      <div class="card span-6">
+        <h2 class="title">Gráfico 2: ¿Cuánto puede caer?</h2>
+        <div class="note">Esto muestra la mayor caída observada (“max drawdown”). Más cerca de 0% = mejor (más tranquilo).</div>
+
+        <!-- SVG (0 to -12) -->
+        <svg viewBox="0 0 520 300" role="img" aria-label="Max drawdown">
+          <rect x="52" y="18" width="450" height="230" fill="#fff" stroke="var(--border)" rx="12"></rect>
+
+          <g stroke="var(--grid)" stroke-width="1">
+            <line x1="52" y1="18"  x2="502" y2="18"></line>
+            <line x1="52" y1="56"  x2="502" y2="56"></line>
+            <line x1="52" y1="94"  x2="502" y2="94"></line>
+            <line x1="52" y1="132" x2="502" y2="132"></line>
+            <line x1="52" y1="170" x2="502" y2="170"></line>
+            <line x1="52" y1="208" x2="502" y2="208"></line>
+            <line x1="52" y1="248" x2="502" y2="248"></line>
+          </g>
+          <g fill="var(--muted)" font-size="11">
+            <text x="10" y="22">0%</text>
+            <text x="6"  y="60">-2%</text>
+            <text x="6"  y="98">-4%</text>
+            <text x="6"  y="136">-6%</text>
+            <text x="6"  y="174">-8%</text>
+            <text x="2"  y="212">-10%</text>
+            <text x="2"  y="252">-12%</text>
+          </g>
+
+          <!-- mapping: height = (abs(dd)/12)*230 ; y = 18 -->
+          <!-- Bars values: Moderado -2.24, Deuda -0.84, BBVA RMP -0.91, BBVA Eq -5.19, Credicorp Cons -0.45, SURA Acciones -10.71 -->
+          <rect x="92"  y="18" width="34" height="42.9" fill="var(--blue)" rx="6" opacity="0.85"></rect>  <!-- -2.24 -->
+          <rect x="162" y="18" width="34" height="16.1" fill="var(--blue)" rx="6" opacity="0.65"></rect>  <!-- -0.84 -->
+          <rect x="232" y="18" width="34" height="17.4" fill="var(--purple)" rx="6" opacity="0.65"></rect><!-- -0.91 -->
+          <rect x="302" y="18" width="34" height="99.4" fill="var(--purple)" rx="6" opacity="0.85"></rect><!-- -5.19 -->
+          <rect x="372" y="18" width="34" height="8.6"  fill="var(--blue)" rx="6" opacity="0.55"></rect>  <!-- -0.45 -->
+          <rect x="442" y="18" width="34" height="205.3" fill="var(--green)" rx="6" opacity="0.85"></rect><!-- -10.71 -->
+
+          <g fill="var(--muted)" font-size="10">
+            <text x="88" y="268">Mod</text>
+            <text x="158" y="268">Deu</text>
+            <text x="228" y="268">RMP</text>
+            <text x="300" y="268">Eq</text>
+            <text x="366" y="268">Cons</text>
+            <text x="438" y="268">SURA</text>
+          </g>
+        </svg>
+
+        <div class="note">
+          Lectura simple: <b>Deuda</b>, <b>RMP</b> y <b>Conservador</b> son los más tranquilos. <b>SURA Acciones</b> es el más riesgoso.
+        </div>
+      </div>
+
+      <div class="card span-12">
+        <h2 class="title">¿Cuál elegir? (regla simple)</h2>
+        <div class="note">
+          Si quieres <b>más ganancia</b> y aguantas caídas: <b>SURA Acciones</b> o <b>Credicorp Moderado</b>.<br/>
+          Si quieres <b>tranquilidad</b> pero igual superar 5.5%: <b>Credicorp Deuda</b> o <b>BBVA Renta Mediano Plazo</b>.
+        </div>
+        <div class="hr"></div>
+        <div class="note">
+          <b>Tip práctico:</b> si te preocupa “comprar justo después de un pico”, mira la columna <b>Ajustado</b>.
+          Si el ajustado sigue siendo bueno (≥ 5.5%), el fondo se ve más “realista”.
+        </div>
+        <div class="footer">
+          Nota: todo esto es histórico (lo que ya ocurrió). No garantiza que se repita.
+        </div>
+      </div>
+
+    </section>
+  </div>
+</body>
+</html>

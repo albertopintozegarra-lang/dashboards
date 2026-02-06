@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dashboard Inventario – Fondos en SOLES (2 años)</title>
+<style>
+:root{
+  --bg:#fff; --card:#fff; --border:#e6e8ef; --text:#111827; --muted:#6b7280;
+  --shadow:0 10px 24px rgba(0,0,0,.08); --radius:16px;
+  --okbg:#f2fff8; --okbd:#c7f9df; --oktx:#065f46;
+  --badbg:#fff5f7; --badbd:#ffd1d9; --badtx:#9f1239;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Segoe UI,Arial;background:var(--bg);color:var(--text);}
+.wrap{max-width:1280px;margin:auto;padding:clamp(16px,2vw,24px);}
+h1{margin:0;font-size:clamp(18px,2.2vw,24px);}
+.sub{color:var(--muted);font-size:clamp(12px,1.4vw,13px);line-height:1.4;margin-top:6px;}
+.top{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;}
+.pill{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--border);
+  padding:8px 10px;border-radius:999px;color:var(--muted);font-size:12px;background:#fff;box-shadow:var(--shadow);}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:16px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:14px;}
+.card h2{margin:0 0 8px 0;font-size:clamp(14px,1.6vw,15px);}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px;}
+.kpi{border:1px solid var(--border);border-radius:14px;padding:10px;background:#fff;}
+.kpi .lbl{color:var(--muted);font-size:11px;}
+.kpi .val{font-size:16px;font-weight:800;margin-top:4px;}
+.kpi .tag{color:var(--muted);font-size:11px;margin-top:4px;}
+.badge-ok,.badge-bad{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;font-size:11px;white-space:nowrap;}
+.badge-ok{background:var(--okbg);border:1px solid var(--okbd);color:var(--oktx);}
+.badge-bad{background:var(--badbg);border:1px solid var(--badbd);color:var(--badtx);}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+select,input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:12px;background:#fff;}
+input{min-width:260px;flex:1;}
+.btn{border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:12px;background:#fff;cursor:pointer;}
+.tableWrap{overflow:auto;border:1px solid var(--border);border-radius:14px;}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:860px;}
+th,td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}
+th{background:#fafbff;color:var(--muted);font-weight:700;cursor:pointer;user-select:none;}
+tr:last-child td{border-bottom:none;}
+.small{color:var(--muted);font-size:11px;}
+.footer{margin-top:10px;color:var(--muted);font-size:11px;line-height:1.35;}
+.spark{height:10px;border-radius:999px;background:#f3f4f6;overflow:hidden;border:1px solid var(--border);}
+.spark > div{height:100%;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Inventario completo – Fondos en SOLES (2 años)</h1>
+      <div class="sub">
+        Periodo base: <b>06/02/2024 → 03/02/2026</b>. Se listan <b>todos los fondos en SOLES (o Nuevos Soles)</b> encontrados en los reportes de valor cuota.
+        <br/>Regla de lectura: <b>≥ 5.5%</b> “pasa el umbral”; <b>&lt; 5.5%</b> “no compite” (por impuestos).
+      </div>
+    </div>
+    <div class="pill">
+      <span>Total fondos (visible)</span><b id="totalCount">—</b>
+      <span class="small">| Pasa: <b id="passCount">—</b> · No compite: <b id="failCount">—</b></span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card" style="grid-column:1/-1;">
+      <h2>Resumen por empresa (universo completo)</h2>
+      <div class="kpis" id="kpis"></div>
+      <div class="footer">Nota: Solo se cuentan fondos con valor cuota válido (&gt; 0) dentro de la ventana.</div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1;">
+      <h2>Detalle fondo por fondo (los 39)</h2>
+
+      <div class="controls" style="margin-bottom:10px;">
+        <select id="empresaSel">
+          <option value="">Todas las empresas</option>
+          <option value="Credicorp">Credicorp</option>
+          <option value="BBVA">BBVA</option>
+          <option value="Scotia">Scotia</option>
+          <option value="SURA">SURA</option>
+        </select>
+
+        <select id="clasifSel">
+          <option value="">Todas las clasificaciones</option>
+          <option value="≥ 5.5%">≥ 5.5% (pasa)</option>
+          <option value="< 5.5%">&lt; 5.5% (no compite)</option>
+        </select>
+
+        <input id="q" placeholder="Buscar por nombre del fondo (ej.: 'liquidez', 'moderado', 'acciones')"/>
+        <button class="btn" id="clearBtn">Limpiar</button>
+      </div>
+
+      <div class="tableWrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th data-k="Empresa">Empresa</th>
+              <th data-k="Fondo">Fondo</th>
+              <th data-k="Clasif">Umbral</th>
+              <th data-k="CAGR_pct">CAGR anual (crudo)</th>
+              <th data-k="Inicio">Inicio usado</th>
+              <th data-k="Fin">Fin usado</th>
+              <th data-k="Dias">Días</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="footer">
+        “CAGR anual (crudo)” = rendimiento anualizado usando el primer y último valor cuota disponibles dentro del periodo.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  /* === 39 fondos (SOLES/Nuevos Soles) === */
+  {"Empresa":"BBVA","Fondo":"BBVA RENTA CORTO PLAZO SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":5.29,"Clasif":"< 5.5%"},
+  {"Empresa":"BBVA","Fondo":"BBVA RENTA MEDIANO PLAZO SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":7.07,"Clasif":"≥ 5.5%"},
+  {"Empresa":"BBVA","Fondo":"BBVA TESORERIA SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":4.85,"Clasif":"< 5.5%"},
+  {"Empresa":"BBVA","Fondo":"BBVA CASH SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":4.71,"Clasif":"< 5.5%"},
+  {"Empresa":"BBVA","Fondo":"FONDO DE FONDOS BBVA CONSERVADOR GLOBAL SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":6.04,"Clasif":"≥ 5.5%"},
+  {"Empresa":"BBVA","Fondo":"FONDO DE FONDOS BBVA EQUILIBRADO GLOBAL SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":7.52,"Clasif":"≥ 5.5%"},
+  {"Empresa":"BBVA","Fondo":"FONDO DE FONDOS BBVA DINAMICO GLOBAL SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":10.56,"Clasif":"≥ 5.5%"},
+  {"Empresa":"BBVA","Fondo":"FONDO DE FONDOS BBVA GESTION ACTIVA SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":5.10,"Clasif":"< 5.5%"},
+
+  {"Empresa":"Credicorp","Fondo":"CREDICORP CAPITAL FACTORING SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":-8.98,"Clasif":"< 5.5%"},
+  {"Empresa":"Credicorp","Fondo":"CREDICORP CAPITAL BARRERA CONDICIONAL SOLES VIII FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":2.09,"Clasif":"< 5.5%"},
+  {"Empresa":"Credicorp","Fondo":"FONDO DE FONDOS CREDICORP CAPITAL RENTA FUTURA SOLES II FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":2.78,"Clasif":"< 5.5%"},
+  {"Empresa":"Credicorp","Fondo":"CREDICORP CAPITAL CONSERVADOR LIQUIDEZ SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":4.83,"Clasif":"< 5.5%"},
+  {"Empresa":"Credicorp","Fondo":"CREDICORP CAPITAL CONSERVADOR CORTO PLAZO SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":5.26,"Clasif":"< 5.5%"},
+  {"Empresa":"Credicorp","Fondo":"CREDICORP CAPITAL CONSERVADOR MEDIANO PLAZO SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":6.78,"Clasif":"≥ 5.5%"},
+  {"Empresa":"Credicorp","Fondo":"CREDICORP CAPITAL DEUDA CORPORATIVA SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":8.40,"Clasif":"≥ 5.5%"},
+  {"Empresa":"Credicorp","Fondo":"CREDICORP CAPITAL MODERADO VCS FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":9.80,"Clasif":"≥ 5.5%"},
+  {"Empresa":"Credicorp","Fondo":"CREDICORP CAPITAL CRECIMIENTO VCS FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":20.92,"Clasif":"≥ 5.5%"},
+
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO PREMIUM S/. FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":-0.51,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO CASH S/. FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":1.83,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO DEPOSITO DISPONIBLE S/. FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":3.68,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO LIQUIDEZ SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":4.63,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SF Renta Soles 1Y VII FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":4.84,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"Scotia Fondo Corto Plazo Plus S/ FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":5.04,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO RENTA SOL PERU S/. FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":6.02,"Clasif":"≥ 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO TESORERIA S/. FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":4.98,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO CORTO PLAZO S/. FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":5.21,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO RENTA SOL GLOBAL S/. FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":5.33,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO DISPONIBLE S/. FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":4.41,"Clasif":"< 5.5%"},
+  {"Empresa":"Scotia","Fondo":"SCOTIA FONDO RENTA SOL LARGO PLAZO S/. FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":5.48,"Clasif":"< 5.5%"},
+
+  {"Empresa":"SURA","Fondo":"FONDO SURA DEUDA SOBERANA DISTRIBUTIVA SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":3.46,"Clasif":"< 5.5%"},
+  {"Empresa":"SURA","Fondo":"FONDO SURA PLAZO DEFINIDO SOLES V FMIV EN NUEVOS SOLES","Inicio":"2024-11-19","Fin":"2025-11-19","Dias":365,"CAGR_pct":4.76,"Clasif":"< 5.5%"},
+  {"Empresa":"SURA","Fondo":"FONDO SURA LIQUIDEZ SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":2.91,"Clasif":"< 5.5%"},
+  {"Empresa":"SURA","Fondo":"FONDO SURA CASH SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":2.54,"Clasif":"< 5.5%"},
+  {"Empresa":"SURA","Fondo":"FONDO SURA TESORERIA SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":2.11,"Clasif":"< 5.5%"},
+  {"Empresa":"SURA","Fondo":"FONDO SURA ULTRA CASH SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":5.26,"Clasif":"< 5.5%"},
+  {"Empresa":"SURA","Fondo":"FONDO SURA CORTO PLAZO SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":5.33,"Clasif":"< 5.5%"},
+  {"Empresa":"SURA","Fondo":"FONDO SURA RENTA SOL PERU SOLES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":6.10,"Clasif":"≥ 5.5%"},
+  {"Empresa":"SURA","Fondo":"FONDO SURA ACCIONES FMIV EN NUEVOS SOLES","Inicio":"2024-02-06","Fin":"2026-02-03","Dias":728,"CAGR_pct":31.36,"Clasif":"≥ 5.5%"},
+  {"Empresa":"SURA","Fondo":"FONDO SURA PLAZO DEFINIDO SOLES IX FMIV EN NUEVOS SOLES","Inicio":"2025-11-21","Fin":"2026-02-03","Dias":74,"CAGR_pct":5.87,"Clasif":"≥ 5.5%"}
+];
+
+let sortKey = "Empresa";
+let sortDir = "asc";
+
+const empresaSel = document.getElementById("empresaSel");
+const clasifSel  = document.getElementById("clasifSel");
+const qInput     = document.getElementById("q");
+const tbody      = document.querySelector("#tbl tbody");
+const clearBtn   = document.getElementById("clearBtn");
+const kpisDiv    = document.getElementById("kpis");
+
+function fmtPct(x){ const v=Number(x); return (isFinite(v)?v.toFixed(2):"—")+"%"; }
+
+function colorForEmpresa(e){
+  return {"Credicorp":"#0b5fff","BBVA":"#6d28d9","Scotia":"#b45309","SURA":"#0f766e"}[e] || "#111827";
+}
+function badge(clasif){
+  return clasif==="≥ 5.5%" ? `<span class="badge-ok">≥ 5.5%</span>` : `<span class="badge-bad">&lt; 5.5%</span>`;
+}
+
+function applyFilters(rows){
+  const e=empresaSel.value, c=clasifSel.value, q=qInput.value.trim().toLowerCase();
+  return rows.filter(r=>{
+    if(e && r.Empresa!==e) return false;
+    if(c && r.Clasif!==c) return false;
+    if(q && !r.Fondo.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function sortRows(rows){
+  const dir = sortDir==="asc" ? 1 : -1;
+  return rows.slice().sort((a,b)=>{
+    const ak=a[sortKey], bk=b[sortKey];
+    const an=Number(ak), bn=Number(bk);
+    if(!Number.isNaN(an) && !Number.isNaN(bn)) return dir*(an-bn);
+    return dir*String(ak).localeCompare(String(bk),"es",{sensitivity:"base"});
+  });
+}
+
+function renderKpis(){
+  const order=["Credicorp","BBVA","Scotia","SURA"];
+  const cards = order.map(emp=>{
+    const rows = DATA.filter(r=>r.Empresa===emp);
+    const ge = rows.filter(r=>r.Clasif==="≥ 5.5%").length;
+    const lt = rows.filter(r=>r.Clasif==="< 5.5%").length;
+    const tot = rows.length;
+    const pct = tot?Math.round(100*ge/tot):0;
+    const color = colorForEmpresa(emp);
+    return `
+      <div class="kpi">
+        <div class="lbl"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};vertical-align:middle;margin-right:6px;"></span>${emp}</div>
+        <div class="val">${tot} fondos</div>
+        <div class="tag"><span class="badge-ok">≥ 5.5%: ${ge}</span> <span class="badge-bad">&lt; 5.5%: ${lt}</span></div>
+        <div class="small" style="margin-top:8px;">% que pasa el umbral: <b>${pct}%</b></div>
+        <div class="spark" style="margin-top:6px;"><div style="width:${pct}%;background:${color};"></div></div>
+      </div>
+    `;
+  }).join("");
+  kpisDiv.innerHTML = cards;
+}
+
+function render(){
+  let rows = applyFilters(DATA);
+  rows = sortRows(rows);
+
+  const pass = rows.filter(r=>r.Clasif==="≥ 5.5%").length;
+  const fail = rows.filter(r=>r.Clasif==="< 5.5%").length;
+  document.getElementById("totalCount").textContent = rows.length;
+  document.getElementById("passCount").textContent  = pass;
+  document.getElementById("failCount").textContent  = fail;
+
+  tbody.innerHTML = rows.map(r=>{
+    const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${colorForEmpresa(r.Empresa)};vertical-align:middle;margin-right:6px;"></span>`;
+    return `<tr>
+      <td>${dot}${r.Empresa}</td>
+      <td>${r.Fondo}</td>
+      <td>${badge(r.Clasif)}</td>
+      <td><b>${fmtPct(r.CAGR_pct)}</b></td>
+      <td>${r.Inicio}</td>
+      <td>${r.Fin}</td>
+      <td>${r.Dias}</td>
+    </tr>`;
+  }).join("");
+}
+
+[empresaSel, clasifSel, qInput].forEach(el=>el.addEventListener("input", render));
+clearBtn.addEventListener("click", ()=>{
+  empresaSel.value=""; clasifSel.value=""; qInput.value="";
+  sortKey="Empresa"; sortDir="asc"; render();
+});
+document.querySelectorAll("#tbl thead th").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const k = th.getAttribute("data-k");
+    if(!k) return;
+    if(sortKey===k){ sortDir = (sortDir==="asc")?"desc":"asc"; }
+    else { sortKey=k; sortDir="asc"; }
+    render();
+  });
+});
+
+renderKpis();
+render();
+</script>
+</body>
+</html>
