@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dashboard – Estructura de Portafolio (Credicorp Capital)</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #f8fafc;
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: #e2e8f0;
+      --accent: #0ea5e9;
+      --accent2: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --radius: 16px;
+      --shadow: 0 8px 24px rgba(2, 6, 23, 0.08);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--sans); background: var(--bg); color: var(--ink); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 40px; }
+    header { display:flex; gap:16px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; margin-bottom:16px; }
+    h1 { font-size:22px; margin:0 0 6px; letter-spacing:-0.01em; }
+    .sub { color:var(--muted); margin:0; line-height:1.35; max-width:72ch; }
+    .meta { font-family:var(--mono); font-size:12px; color:var(--muted); background:var(--panel); border:1px solid var(--line); padding:10px 12px; border-radius:12px; }
+    .grid { display:grid; gap:14px; }
+    .grid.cards { grid-template-columns:repeat(12,1fr); margin:14px 0 18px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 14px 12px; min-height:92px; }
+    .card h3 { margin:0; font-size:12px; color:var(--muted); font-weight:650; letter-spacing:0.02em; text-transform:uppercase; }
+    .card .big { margin-top:8px; font-size:20px; font-weight:750; letter-spacing:-0.02em; }
+    .card .small { margin-top:6px; color:var(--muted); font-size:13px; }
+    .span-3 { grid-column:span 3; }
+    @media (max-width:900px) { .span-3 { grid-column:span 12; } }
+    .panel { background:var(--bg); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; }
+    .panel h2 { margin:0 0 10px; font-size:16px; letter-spacing:-0.01em; }
+    .row { display:grid; grid-template-columns:1.25fr 1fr; gap:14px; }
+    @media (max-width:900px) { .row { grid-template-columns:1fr; } }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th,td { padding:10px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { text-align:left; color:var(--muted); font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:0.02em; }
+    td.num { text-align:right; font-variant-numeric:tabular-nums; }
+    .tag { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--muted); background:#fff; margin:6px 8px 0 0; white-space:nowrap; }
+    .dot { width:8px; height:8px; border-radius:999px; display:inline-block; }
+    .dot.a { background:var(--accent); } .dot.b { background:var(--accent2); } .dot.c { background:var(--warn); } .dot.d { background:var(--danger); }
+    .callout { margin-top:12px; padding:12px 12px; border-radius:14px; border:1px dashed var(--line); background:#fff; color:var(--muted); font-size:13px; line-height:1.45; }
+    .rules li { margin:6px 0; }
+    .footer { margin-top:18px; color:var(--muted); font-size:12px; line-height:1.4; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Dashboard – Estructura de Portafolio (para Credicorp Capital)</h1>
+      <p class="sub">
+        Composición sugerida con <b>Cuenta Genial</b> como piso de liquidez/seguridad y tres fondos de Credicorp Capital
+        (Deuda, Moderado VCS y satélite Crecimiento VCS). Monto total: <b>S/ 600.000</b>.
+      </p>
+      <div class="tag"><span class="dot a"></span>Cuenta / Liquidez</div>
+      <div class="tag"><span class="dot b"></span>Estabilidad (Deuda)</div>
+      <div class="tag"><span class="dot c"></span>Crecimiento core (Moderado)</div>
+      <div class="tag"><span class="dot d"></span>Satélite (Crecimiento VCS)</div>
+    </div>
+    <div class="meta">
+      <div><b>Piso en cuenta:</b> S/ 250.000 (>= S/ 200k para tasa + S/ 50k seguridad)</div>
+      <div><b>Motor en fondos:</b> S/ 350.000</div>
+      <div><b>Satélite:</b> 12% del motor</div>
+    </div>
+  </header>
+
+  <section class="grid cards">
+    <div class="card span-3">
+      <h3>Total</h3>
+      <div class="big">S/ 600.000</div>
+      <div class="small">Base de planificación anual</div>
+    </div>
+    <div class="card span-3">
+      <h3>Cuenta Genial</h3>
+      <div class="big">S/ 250.000</div>
+      <div class="small">41.67% del total</div>
+    </div>
+    <div class="card span-3">
+      <h3>Motor en fondos</h3>
+      <div class="big">S/ 350.000</div>
+      <div class="small">58.33% del total</div>
+    </div>
+    <div class="card span-3">
+      <h3>Satélite (en motor)</h3>
+      <div class="big">12.00%</div>
+      <div class="small">S/ 42.000 en Crecimiento VCS</div>
+    </div>
+  </section>
+
+  <div class="row">
+    <div class="panel">
+      <h2>Composición (montos y porcentajes)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Componente</th>
+            <th class="num">Monto</th>
+            <th class="num">% del total</th>
+            <th class="num">% del motor</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr>
+            <td>Cuenta Genial (depósito)</td>
+            <td class="num">S/ 250.000</td>
+            <td class="num">41.67%</td>
+            <td class="num">-</td>
+          </tr>
+
+          <tr>
+            <td>Credicorp Capital Deuda Corporativa Soles FMIV</td>
+            <td class="num">S/ 70.000</td>
+            <td class="num">11.67%</td>
+            <td class="num">20.00%</td>
+          </tr>
+
+          <tr>
+            <td>Credicorp Capital Moderado VCS FMIV</td>
+            <td class="num">S/ 238.000</td>
+            <td class="num">39.67%</td>
+            <td class="num">68.00%</td>
+          </tr>
+
+          <tr>
+            <td>Credicorp Capital Crecimiento VCS FMIV (satélite)</td>
+            <td class="num">S/ 42.000</td>
+            <td class="num">7.00%</td>
+            <td class="num">12.00%</td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <b>Objetivo:</b> mantener el piso en <b>Cuenta Genial</b> para seguridad y continuidad de retiros.
+        El motor busca crecimiento con un <b>satélite acotado (12% del motor)</b> para capturar upside sin dominar el riesgo.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Distribución visual</h2>
+      <canvas id="pie" height="220"></canvas>
+      <div class="callout">
+        Copia/pega esta tabla al correo o chat con tu corredor; el gráfico ayuda a validar pesos rápidamente.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:14px;">
+    <h2>Reglas operativas resumidas (para discusión con el corredor)</h2>
+    <ul class="rules">
+      <li><b>Retiros trimestrales:</b> usar primero el exceso sobre el piso en Cuenta Genial; si falta, financiar con <b>Deuda Corporativa Soles</b>. Evitar vender el satélite para pagar retiros.</li>
+      <li><b>Control del satélite:</b> si <i>Crecimiento VCS</i> supera banda (p.ej. 18% del motor), tomar ganancias para volver al objetivo (12%). Destino sugerido: Deuda / Cuenta.</li>
+      <li><b>Shock de deuda:</b> si la deuda tiene un mes muy negativo, preferir cubrir faltantes con Moderado (mínimo) y rebalancear luego.</li>
+    </ul>
+    <div class="footer">
+      Nota: Los nombres de fondos están escritos de forma operacional; tu corredor puede mapearlos al código/clase exacta (Fondo Mutuo / FMIV) que tengas contratada.
+    </div>
+  </div>
+</div>
+
+<script>
+const data = {"labels": ["Cuenta Genial (depósito)", "Credicorp Capital Deuda Corporativa Soles FMIV", "Credicorp Capital Moderado VCS FMIV", "Credicorp Capital Crecimiento VCS FMIV (satélite)"], "amounts": [250000, 70000.0, 238000.0, 42000.0]};
+const ctx = document.getElementById('pie');
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: data.labels,
+    datasets: [{
+      data: data.amounts,
+      borderWidth: 1,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { boxWidth: 14, boxHeight: 14, padding: 12 }
+      },
+      tooltip: {
+        callbacks: {
+          
+label: function(context) {
+  const val = context.raw || 0;
+  const total = context.dataset.data.reduce((a,b)=>a+b,0);
+  const p = total ? (val/total*100) : 0;
+  return ' ' + val.toLocaleString('es-PE', {style:'currency', currency:'PEN', maximumFractionDigits:0}) + '  (' + p.toFixed(2) + '%)';
+}
+
+        }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
