@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IFP Indonesia — Dashboard Operaciones</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --ink:#0b1220;
+      --muted:#556070;
+      --line:#e6e9ef;
+      --soft:#f6f8fb;
+
+      --a:#0f4c81;  /* azul */
+      --b:#0ea5a4;  /* turquesa */
+      --c:#f59e0b;  /* naranja */
+
+      --shadow: 0 10px 28px rgba(15, 23, 42, .08);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue";
+      color:var(--ink);
+      background:var(--bg);
+      line-height:1.25;
+    }
+    .wrap{max-width:1200px; margin:0 auto; padding:18px;}
+    header{
+      display:flex; gap:14px; align-items:flex-start; justify-content:space-between;
+      padding:18px; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+      background:linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+    }
+    h1{margin:0; font-size:20px; letter-spacing:.2px}
+    .subtitle{color:var(--muted); font-size:13px; max-width:820px; margin-top:8px}
+    .pills{display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:flex-end}
+    .pill{
+      font-size:12px; color:var(--ink);
+      border:1px solid var(--line);
+      padding:8px 10px; border-radius:999px;
+      background:var(--soft);
+      white-space:nowrap;
+    }
+
+    .grid{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+    }
+
+    /* Responsive layout tuning */
+    @media (max-width: 1100px){
+      .grid{grid-template-columns:1fr;}
+      .pills{justify-content:flex-start}
+    }
+    @media (max-width: 520px){
+      .wrap{padding:12px;}
+      header{padding:14px;}
+      h1{font-size:18px;}
+      .subtitle{font-size:12.5px;}
+      .pill{font-size:11.5px;}
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      background:#fff;
+      overflow:hidden;
+    }
+    .card-h{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line);
+      background:#fff;
+    }
+    .card-h h2{margin:0; font-size:15px}
+    .hint{color:var(--muted); font-size:12px}
+
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap;
+      padding:12px 14px; border-bottom:1px solid var(--line);
+      background:var(--soft);
+    }
+    .tab{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
+      transition:.15s ease;
+    }
+    .tab[aria-selected="true"]{
+      border-color: rgba(15,76,129,.35);
+      box-shadow: 0 6px 16px rgba(15,76,129,.12);
+      background: linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
+      font-weight:600;
+    }
+
+    /* Two column inside left card; collapses nicely */
+    .two-col{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:12px;
+      align-items:start;
+      padding:14px;
+    }
+    @media (max-width: 980px){ .two-col{grid-template-columns:1fr;} }
+
+    .kpi-row{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+    }
+    @media (max-width: 860px){ .kpi-row{grid-template-columns:1fr;} }
+
+    .kpi{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:linear-gradient(180deg,#fff 0%, #fbfcff 100%);
+      padding:12px;
+    }
+    .kpi .label{font-size:12px; color:var(--muted)}
+    .kpi .val{margin-top:6px; font-size:14px; font-weight:700}
+    .kpi .note{margin-top:6px; font-size:12px; color:var(--muted)}
+
+    .badge{
+      font-size:11px; padding:5px 8px; border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--soft);
+      color:var(--ink);
+      white-space:nowrap;
+    }
+
+    .list{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      margin-top:12px;
+    }
+    .list h3{margin:0 0 10px; font-size:13px}
+    .ul{margin:0; padding-left:18px; color:var(--ink); font-size:12.5px}
+    .ul li{margin:7px 0}
+    .muted{color:var(--muted)}
+    .divider{height:1px; background:var(--line); margin:12px 0}
+
+    /* Flow: bigger by default + zoom modal */
+    .flow{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      padding:10px;
+    }
+    .flow-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin:4px 2px 10px;
+      flex-wrap:wrap;
+    }
+    .flow-title{
+      font-weight:700;
+      font-size:12.5px;
+      color:var(--ink);
+    }
+    .flow-actions{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
+      transition:.15s ease;
+    }
+    .btn:hover{background:var(--soft)}
+    .btn.primary{
+      border-color: rgba(15,76,129,.35);
+      background: rgba(15,76,129,.06);
+    }
+
+    /* Make the inline flow larger and clearer */
+    .flow-viewport{
+      border:1px dashed rgba(230,233,239,.9);
+      border-radius:12px;
+      padding:10px;
+      background:linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      max-height: 520px; /* large by default */
+    }
+    .flow svg{
+      width: 100%;
+      height: auto;
+      min-width: 720px; /* so details don’t collapse too much */
+      display:block;
+    }
+    @media (max-width: 980px){
+      .flow svg{min-width: 760px;} /* phones: allow pan horizontally */
+      .flow-viewport{max-height: 520px;}
+    }
+    @media (max-width: 520px){
+      .flow svg{min-width: 820px;}
+      .flow-viewport{max-height: 460px;}
+    }
+
+    .cap{margin-top:10px; font-size:12px; color:var(--muted)}
+
+    /* Right column table */
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+    }
+    th, td{
+      padding:10px 10px;
+      font-size:12px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+    }
+    th{background:var(--soft); text-align:left; font-size:12px}
+    tr:last-child td{border-bottom:none;}
+
+    .tag{
+      display:inline-block; padding:3px 7px; border-radius:999px; border:1px solid var(--line);
+      font-size:11px; background:#fff;
+      margin-right:6px; margin-top:4px;
+    }
+    .tag.a{border-color:rgba(15,76,129,.35); background:rgba(15,76,129,.06)}
+    .tag.b{border-color:rgba(14,165,164,.35); background:rgba(14,165,164,.07)}
+    .tag.c{border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.10)}
+
+    .card-b{padding:14px;}
+
+    .footer{
+      margin-top:14px;
+      padding:12px 14px;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:var(--soft);
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .hide{display:none;}
+
+    /* Modal (flow zoom) */
+    .modal{
+      position:fixed; inset:0;
+      background: rgba(2, 6, 23, .55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:14px;
+      z-index:9999;
+    }
+    .modal[aria-hidden="false"]{display:flex;}
+    .modal-card{
+      width:min(1200px, 96vw);
+      height:min(86vh, 900px);
+      background:#fff;
+      border-radius:22px;
+      border:1px solid rgba(230,233,239,.9);
+      box-shadow: 0 30px 90px rgba(0,0,0,.25);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .modal-h{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .modal-h .title{font-weight:800; font-size:13px}
+    .modal-h .sub{color:var(--muted); font-size:12px}
+    .modal-actions{display:flex; gap:8px; flex-wrap:wrap;}
+    .modal-b{
+      padding:12px;
+      height:100%;
+      overflow:auto;
+      background: #fff;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Big flow inside modal: allow pan + pinch zoom via browser */
+    .big-flow{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+      background:linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+      overflow:auto;
+      min-height: 60vh;
+    }
+    .big-flow svg{
+      width: 100%;
+      height:auto;
+      min-width: 1100px; /* make it really readable; users pan if needed */
+      display:block;
+    }
+    @media (max-width: 520px){
+      .big-flow svg{min-width: 1200px;}
+    }
+
+    /* Optional: reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .tab,.btn{transition:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>IFP Indonesia — Dashboard Operaciones (Red de Abastecimiento y Plantas)</h1>
+        <div class="subtitle">
+          Tres alternativas de diseño (Dispersión, Centralizado, Híbrido) con flujogramas ampliables y pros/contras para discusión MBA.
+        </div>
+      </div>
+      <div class="pills">
+        <div class="pill">Responsive + móvil</div>
+        <div class="pill">Flujo ampliable</div>
+        <div class="pill">Sin librerías</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Options + Flows -->
+      <section class="card" id="optionsCard">
+        <div class="card-h">
+          <div>
+            <h2>Opciones de Diseño (flujos + trade-offs)</h2>
+            <div class="hint">En móvil, el flujo se puede desplazar (scroll) y también ampliarse en pantalla completa.</div>
+          </div>
+          <span class="badge" id="headlineBadge">Vista: Dispersión</span>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Opciones">
+          <button class="tab" id="tA" role="tab" aria-selected="true" aria-controls="panelA">Sistema de dispersión</button>
+          <button class="tab" id="tB" role="tab" aria-selected="false" aria-controls="panelB">Sistema centralizado</button>
+          <button class="tab" id="tC" role="tab" aria-selected="false" aria-controls="panelC">Sistema híbrido</button>
+        </div>
+
+        <!-- PANEL A -->
+        <div id="panelA" role="tabpanel" aria-labelledby="tA">
+          <div class="two-col">
+            <div class="flow">
+              <div class="flow-head">
+                <div class="flow-title">Flujo operativo — Dispersión (8 trituradoras interiores)</div>
+                <div class="flow-actions">
+                  <button class="btn primary" data-zoom="A">Ver flujo grande</button>
+                  <button class="btn" data-jump="A">Centrar</button>
+                </div>
+              </div>
+              <div class="flow-viewport" id="viewportA" aria-label="Vista desplazable del flujo A">
+                <!-- SVG A -->
+                <svg id="svgA" viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <marker id="arrowA" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                      <path d="M0,0 L10,3 L0,6 Z" fill="#0f4c81"></path>
+                    </marker>
+                    <style>
+                      .box{fill:#fff;stroke:#e6e9ef;stroke-width:2;rx:16;ry:16}
+                      .ttl{font: 600 14px system-ui, -apple-system, Segoe UI, Roboto, Arial; fill:#0b1220}
+                      .sub{font: 12px system-ui, -apple-system, Segoe UI, Roboto, Arial; fill:#556070}
+                      .arr{stroke:#0f4c81;stroke-width:3;fill:none;marker-end:url(#arrowA)}
+                      .pill{fill:rgba(15,76,129,.08); stroke:rgba(15,76,129,.35); stroke-width:1.5; rx:999; ry:999}
+                      .pillTxt{font: 12px system-ui; fill:#0b1220}
+                    </style>
+                  </defs>
+
+                  <rect class="box" x="28" y="40" width="250" height="90"/>
+                  <text class="ttl" x="48" y="72">Concesiones locales</text>
+                  <text class="sub" x="48" y="95">Propiedad indonesia (contratos)</text>
+                  <rect class="pill" x="48" y="104" width="200" height="24"/>
+                  <text class="pillTxt" x="60" y="121">Regalías a concesionarios</text>
+
+                  <path class="arr" d="M278,85 C330,85 330,85 382,85"/>
+
+                  <rect class="box" x="382" y="40" width="250" height="90"/>
+                  <text class="ttl" x="402" y="72">8 trituradoras interiores</text>
+                  <text class="sub" x="402" y="95">Procesamiento local intensivo</text>
+                  <rect class="pill" x="402" y="104" width="215" height="24"/>
+                  <text class="pillTxt" x="414" y="121">Infraestructura + caminos/puentes</text>
+
+                  <path class="arr" d="M632,85 C685,85 685,85 738,85"/>
+
+                  <rect class="box" x="738" y="40" width="140" height="90"/>
+                  <text class="ttl" x="758" y="72">Puerto local</text>
+                  <text class="sub" x="758" y="95">Río arriba / costa</text>
+
+                  <path class="arr" d="M808,130 C808,170 808,170 808,210"/>
+
+                  <rect class="box" x="520" y="210" width="358" height="110"/>
+                  <text class="ttl" x="540" y="242">Buques ~10,000 TPM (a Europa)</text>
+                  <text class="sub" x="540" y="266">Menor escala → más viajes / coordinación</text>
+                  <rect class="pill" x="540" y="276" width="300" height="24"/>
+                  <text class="pillTxt" x="552" y="293">Riesgo: aduanas/agentes múltiples</text>
+
+                  <path class="arr" d="M507,85 C507,150 450,150 450,210"/>
+
+                  <rect class="box" x="28" y="210" width="420" height="110"/>
+                  <text class="ttl" x="48" y="242">Tala + transporte local en concesión</text>
+                  <text class="sub" x="48" y="266">Costos altos por dispersión + mantenimiento</text>
+                  <rect class="pill" x="48" y="276" width="360" height="24"/>
+                  <text class="pillTxt" x="60" y="293">Riesgo: presión por infraestructura social</text>
+                </svg>
+              </div>
+              <div class="cap"><b>Lógica:</b> mayor presencia local y contratos, pero alta complejidad multi-sitio y compromisos de infraestructura.</div>
+            </div>
+
+            <div>
+              <div class="kpi-row">
+                <div class="kpi">
+                  <div class="label">Abastecimiento</div>
+                  <div class="val">Contratos (regalías)</div>
+                  <div class="note">Relación local + permisos.</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">Ventaja</div>
+                  <div class="val">“Anclaje” al recurso</div>
+                  <div class="note">Menos spot (si contratos sostienen).</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">Riesgo</div>
+                  <div class="val">Gobernanza local</div>
+                  <div class="note">Infra, aduanas, coordinación.</div>
+                </div>
+              </div>
+
+              <div class="list">
+                <h3>Pros</h3>
+                <ul class="ul">
+                  <li>Mayor seguridad relativa de suministro por contratos con concesionarios.</li>
+                  <li>Más empleo local y legitimidad en territorio.</li>
+                  <li>Procesamiento cerca del recurso (menor “movimiento” de leños si caminos funcionan).</li>
+                </ul>
+              </div>
+
+              <div class="list">
+                <h3>Contras</h3>
+                <ul class="ul">
+                  <li>8 sitios multiplican permisos, repuestos, supervisión y puntos de falla.</li>
+                  <li>Riesgo de costos recurrentes por infraestructura comunitaria y mantenimiento.</li>
+                  <li>Menor escala marítima (más viajes; mayor coordinación).</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL B -->
+        <div id="panelB" role="tabpanel" aria-labelledby="tB" class="hide">
+          <div class="two-col">
+            <div class="flow">
+              <div class="flow-head">
+                <div class="flow-title">Flujo operativo — Centralizado (1 planta + subastas)</div>
+                <div class="flow-actions">
+                  <button class="btn primary" data-zoom="B">Ver flujo grande</button>
+                  <button class="btn" data-jump="B">Centrar</button>
+                </div>
+              </div>
+              <div class="flow-viewport" id="viewportB">
+                <!-- SVG B -->
+                <svg id="svgB" viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <marker id="arrowB" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                      <path d="M0,0 L10,3 L0,6 Z" fill="#0ea5a4"></path>
+                    </marker>
+                    <style>
+                      .box{fill:#fff;stroke:#e6e9ef;stroke-width:2;rx:16;ry:16}
+                      .ttl{font: 600 14px system-ui, -apple-system, Segoe UI, Roboto, Arial; fill:#0b1220}
+                      .sub{font: 12px system-ui, -apple-system, Segoe UI, Roboto, Arial; fill:#556070}
+                      .arr{stroke:#0ea5a4;stroke-width:3;fill:none;marker-end:url(#arrowB)}
+                      .pill{fill:rgba(14,165,164,.08); stroke:rgba(14,165,164,.35); stroke-width:1.5; rx:999; ry:999}
+                      .pillTxt{font: 12px system-ui; fill:#0b1220}
+                    </style>
+                  </defs>
+
+                  <rect class="box" x="28" y="40" width="300" height="90"/>
+                  <text class="ttl" x="48" y="72">Mercado de troncos (subastas)</text>
+                  <text class="sub" x="48" y="95">Compras spot, sin contratos largos</text>
+                  <rect class="pill" x="48" y="104" width="260" height="24"/>
+                  <text class="pillTxt" x="60" y="121">Riesgo: volatilidad precio/volumen</text>
+
+                  <path class="arr" d="M328,85 C380,85 380,85 432,85"/>
+
+                  <rect class="box" x="432" y="40" width="290" height="90"/>
+                  <text class="ttl" x="452" y="72">Planta central (desembocadura)</text>
+                  <text class="sub" x="452" y="95">Acceso a aguas profundas</text>
+                  <rect class="pill" x="452" y="104" width="250" height="24"/>
+                  <text class="pillTxt" x="464" y="121">Repuestos más simples (1 nodo)</text>
+
+                  <path class="arr" d="M722,85 C760,85 760,85 798,85"/>
+
+                  <rect class="box" x="798" y="40" width="90" height="90"/>
+                  <text class="ttl" x="810" y="72">Muelle</text>
+                  <text class="sub" x="810" y="95">Deep water</text>
+
+                  <path class="arr" d="M843,130 C843,170 843,170 843,210"/>
+
+                  <rect class="box" x="510" y="210" width="378" height="110"/>
+                  <text class="ttl" x="530" y="242">Buques ~40,000 TPM (a Europa)</text>
+                  <text class="sub" x="530" y="266">Escala marítima y menor complejidad salida</text>
+                  <rect class="pill" x="530" y="276" width="320" height="24"/>
+                  <text class="pillTxt" x="542" y="293">Menos nodos → control operacional</text>
+
+                  <path class="arr" d="M178,130 C178,175 178,175 178,210"/>
+
+                  <rect class="box" x="28" y="210" width="380" height="110"/>
+                  <text class="ttl" x="48" y="242">Transporte de troncos a planta</text>
+                  <text class="sub" x="48" y="266">Lead time largo y variable</text>
+                  <rect class="pill" x="48" y="276" width="330" height="24"/>
+                  <text class="pillTxt" x="60" y="293">Riesgo: clima + congestión logística</text>
+
+                  <path class="arr" d="M408,265 C430,265 430,265 510,265"/>
+                </svg>
+              </div>
+              <div class="cap"><b>Lógica:</b> simplificación de red y escala marítima, pero exposición a precio/volumen del mercado spot.</div>
+            </div>
+
+            <div>
+              <div class="kpi-row">
+                <div class="kpi">
+                  <div class="label">Abastecimiento</div>
+                  <div class="val">Subastas (spot)</div>
+                  <div class="note">Alta variabilidad y renegociación.</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">Ventaja</div>
+                  <div class="val">Control + escala</div>
+                  <div class="note">40,000 TPM y 1 nodo.</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">Riesgo</div>
+                  <div class="val">Volatilidad + lead time</div>
+                  <div class="note">Clima/demanda afecta costo.</div>
+                </div>
+              </div>
+
+              <div class="list">
+                <h3>Pros</h3>
+                <ul class="ul">
+                  <li>Menos sitios: más control y menor fricción operativa.</li>
+                  <li>Economías de escala marítima (buques grandes).</li>
+                  <li>Importación de repuestos más simple (un puerto).</li>
+                </ul>
+              </div>
+
+              <div class="list">
+                <h3>Contras</h3>
+                <ul class="ul">
+                  <li>Dependencia de mercado spot: picos de precio y escasez.</li>
+                  <li>Variabilidad logística del aprovisionamiento de troncos.</li>
+                  <li>Menor “anclaje” local a concesiones puede afectar legitimidad regional.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL C -->
+        <div id="panelC" role="tabpanel" aria-labelledby="tC" class="hide">
+          <div class="two-col">
+            <div class="flow">
+              <div class="flow-head">
+                <div class="flow-title">Flujo operativo — Híbrido (8 trituradoras + transbordo)</div>
+                <div class="flow-actions">
+                  <button class="btn primary" data-zoom="C">Ver flujo grande</button>
+                  <button class="btn" data-jump="C">Centrar</button>
+                </div>
+              </div>
+              <div class="flow-viewport" id="viewportC">
+                <!-- SVG C -->
+                <svg id="svgC" viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <marker id="arrowC" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                      <path d="M0,0 L10,3 L0,6 Z" fill="#f59e0b"></path>
+                    </marker>
+                    <style>
+                      .box{fill:#fff;stroke:#e6e9ef;stroke-width:2;rx:16;ry:16}
+                      .ttl{font: 600 14px system-ui, -apple-system, Segoe UI, Roboto, Arial; fill:#0b1220}
+                      .sub{font: 12px system-ui, -apple-system, Segoe UI, Roboto, Arial; fill:#556070}
+                      .arr{stroke:#f59e0b;stroke-width:3;fill:none;marker-end:url(#arrowC)}
+                      .pill{fill:rgba(245,158,11,.12); stroke:rgba(245,158,11,.35); stroke-width:1.5; rx:999; ry:999}
+                      .pillTxt{font: 12px system-ui; fill:#0b1220}
+                    </style>
+                  </defs>
+
+                  <rect class="box" x="28" y="40" width="250" height="90"/>
+                  <text class="ttl" x="48" y="72">Concesiones locales</text>
+                  <text class="sub" x="48" y="95">Contratos + regalías</text>
+                  <rect class="pill" x="48" y="104" width="210" height="24"/>
+                  <text class="pillTxt" x="60" y="121">Abastecimiento “asegurado”</text>
+
+                  <path class="arr" d="M278,85 C330,85 330,85 382,85"/>
+
+                  <rect class="box" x="382" y="40" width="250" height="90"/>
+                  <text class="ttl" x="402" y="72">8 trituradoras interiores</text>
+                  <text class="sub" x="402" y="95">Procesamiento local</text>
+                  <rect class="pill" x="402" y="104" width="215" height="24"/>
+                  <text class="pillTxt" x="414" y="121">Infra local (alto) + empleo</text>
+
+                  <path class="arr" d="M507,130 C507,175 507,175 507,210"/>
+
+                  <rect class="box" x="330" y="210" width="350" height="110"/>
+                  <text class="ttl" x="350" y="242">Barcazas → transbordo</text>
+                  <text class="sub" x="350" y="266">Consolidación en aguas profundas</text>
+                  <rect class="pill" x="350" y="276" width="320" height="24"/>
+                  <text class="pillTxt" x="362" y="293">Nodo crítico (capacidad/colas)</text>
+
+                  <path class="arr" d="M680,265 C720,265 720,265 760,265"/>
+
+                  <rect class="box" x="760" y="210" width="128" height="110"/>
+                  <text class="ttl" x="778" y="242">Buques</text>
+                  <text class="ttl" x="778" y="260">~40,000 TPM</text>
+                  <text class="sub" x="778" y="284">Directo a Europa</text>
+
+                  <path class="arr" d="M632,85 C720,85 720,85 780,210"/>
+                </svg>
+              </div>
+              <div class="cap"><b>Lógica:</b> combina contratos (suministro) con escala marítima, agregando un nodo de transbordo.</div>
+            </div>
+
+            <div>
+              <div class="kpi-row">
+                <div class="kpi">
+                  <div class="label">Abastecimiento</div>
+                  <div class="val">Contratos (regalías)</div>
+                  <div class="note">Reduce spot, conserva complejidad local.</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">Ventaja</div>
+                  <div class="val">Consolidación</div>
+                  <div class="note">Buques grandes sin perder interior.</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">Riesgo</div>
+                  <div class="val">Transbordo</div>
+                  <div class="note">Cuellos de botella y permisos.</div>
+                </div>
+              </div>
+
+              <div class="list">
+                <h3>Pros</h3>
+                <ul class="ul">
+                  <li>Menos dependencia de subastas (volatilidad menor).</li>
+                  <li>Economías de escala marítima (similar a centralizado).</li>
+                  <li>Mayor coherencia política por empleo interior + exportación eficiente.</li>
+                </ul>
+              </div>
+
+              <div class="list">
+                <h3>Contras</h3>
+                <ul class="ul">
+                  <li>Mantiene costos/compromisos de dispersión y agrega un nodo.</li>
+                  <li>Coordinación multi-etapa (8 sitios + barcazas + transbordo).</li>
+                  <li>Cuello potencial en transbordo (capacidad/colas/clima).</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT: Comparison -->
+      <aside class="card">
+        <div class="card-h">
+          <div>
+            <h2>Comparativo rápido (para decisión)</h2>
+            <div class="hint">Criterios típicos de Operaciones: control, riesgo de suministro, complejidad, escala logística.</div>
+          </div>
+          <span class="badge">MBA Ops</span>
+        </div>
+        <div class="card-b">
+          <table aria-label="Tabla comparativa">
+            <thead>
+              <tr>
+                <th style="width:18%">Opción</th>
+                <th style="width:41%">Ventaja principal</th>
+                <th style="width:41%">Debilidad principal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Dispersión</b><br><span class="muted">8 sitios</span></td>
+                <td><span class="tag a">Suministro contractual</span><span class="tag a">Legitimidad local</span><br>Más “anclaje” en concesiones y empleo regional.</td>
+                <td><span class="tag c">Complejidad</span><span class="tag c">Infra social</span><br>Ocho puntos de falla + compromisos comunitarios y aduanas múltiples.</td>
+              </tr>
+              <tr>
+                <td><b>Centralizado</b><br><span class="muted">1 planta</span></td>
+                <td><span class="tag b">Control</span><span class="tag b">Escala marítima</span><br>Menos nodos, exportación eficiente y repuestos simples.</td>
+                <td><span class="tag c">Spot</span><span class="tag c">Volatilidad</span><br>Precio/volumen inciertos; riesgo de ruptura por clima/mercado.</td>
+              </tr>
+              <tr>
+                <td><b>Híbrido</b><br><span class="muted">9 nodos</span></td>
+                <td><span class="tag a">Suministro</span><span class="tag b">Consolidación</span><br>Contratos interiores + buques grandes vía transbordo.</td>
+                <td><span class="tag c">Nodo crítico</span><span class="tag c">Coordinación</span><br>Transbordo puede volverse cuello (capacidad/colas/permisos).</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="list">
+            <h3>Tip práctico</h3>
+            <ul class="ul">
+              <li>Si lo estás viendo desde el móvil: usa <b>“Ver flujo grande”</b> para abrir el diagrama en modal y poder hacer zoom/pan con el navegador.</li>
+              <li>En escritorio: el flujo ya es más grande y el contenedor permite desplazamiento horizontal si hace falta.</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Hecho para web estática. Incluye: layout responsive (breakpoints), flujo en viewport desplazable, y modal de ampliación.
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal" id="flowModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card" role="document">
+      <div class="modal-h">
+        <div>
+          <div class="title" id="modalTitle">Flujo grande</div>
+          <div class="sub" id="modalSub">Desplázate para ver detalles. Usa el zoom del navegador (Ctrl/Cmd + / gesto).</div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" id="copySvgBtn">Copiar SVG</button>
+          <button class="btn primary" id="closeModalBtn">Cerrar</button>
+        </div>
+      </div>
+      <div class="modal-b">
+        <div class="big-flow" id="modalFlowHost" aria-label="Flujo ampliado"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // Tabs
+      const tabs = [
+        {btn: document.getElementById('tA'), panel: document.getElementById('panelA'), name:'Dispersión', key:'A'},
+        {btn: document.getElementById('tB'), panel: document.getElementById('panelB'), name:'Centralizado', key:'B'},
+        {btn: document.getElementById('tC'), panel: document.getElementById('panelC'), name:'Híbrido', key:'C'},
+      ];
+      const badge = document.getElementById('headlineBadge');
+
+      function select(idx){
+        tabs.forEach((t,i)=>{
+          const on = i===idx;
+          t.btn.setAttribute('aria-selected', on ? 'true':'false');
+          t.panel.classList.toggle('hide', !on);
+        });
+        badge.textContent = 'Vista: ' + tabs[idx].name;
+      }
+      tabs.forEach((t,i)=> t.btn.addEventListener('click', ()=>select(i)));
+      select(0);
+
+      // Modal zoom
+      const modal = document.getElementById('flowModal');
+      const modalHost = document.getElementById('modalFlowHost');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalSub = document.getElementById('modalSub');
+      const closeBtn = document.getElementById('closeModalBtn');
+      const copyBtn = document.getElementById('copySvgBtn');
+
+      let lastSvgText = '';
+
+      function openModal(which){
+        const svg = document.getElementById('svg' + which);
+        if(!svg) return;
+
+        // Clone SVG for display
+        const clone = svg.cloneNode(true);
+        clone.removeAttribute('id');
+
+        modalHost.innerHTML = '';
+        modalHost.appendChild(clone);
+
+        modalTitle.textContent = 'Flujo grande — ' + (which==='A'?'Dispersión':which==='B'?'Centralizado':'Híbrido');
+        modalSub.textContent = 'Tip: desplázate (pan) dentro del recuadro. En móvil puedes hacer pinch-to-zoom del navegador.';
+
+        // Keep text for copy
+        lastSvgText = new XMLSerializer().serializeToString(svg);
+
+        modal.setAttribute('aria-hidden','false');
+        // Prevent body scroll behind
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal(){
+        modal.setAttribute('aria-hidden','true');
+        modalHost.innerHTML = '';
+        document.body.style.overflow = '';
+      }
+
+      document.querySelectorAll('[data-zoom]').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          openModal(e.currentTarget.getAttribute('data-zoom'));
+        });
+      });
+
+      // Center viewport
+      document.querySelectorAll('[data-jump]').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          const key = e.currentTarget.getAttribute('data-jump');
+          const vp = document.getElementById('viewport' + key);
+          if(!vp) return;
+          vp.scrollLeft = Math.max(0, (vp.scrollWidth - vp.clientWidth) / 2);
+          vp.scrollTop  = Math.max(0, (vp.scrollHeight - vp.clientHeight) / 2);
+        });
+      });
+
+      closeBtn.addEventListener('click', closeModal);
+
+      modal.addEventListener('click', (e)=>{
+        if(e.target === modal) closeModal();
+      });
+
+      document.addEventListener('keydown', (e)=>{
+        if(e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+      });
+
+      // Copy SVG to clipboard (best-effort)
+      copyBtn.addEventListener('click', async ()=>{
+        try{
+          if(!lastSvgText) return;
+          await navigator.clipboard.writeText(lastSvgText);
+          copyBtn.textContent = 'Copiado ✓';
+          setTimeout(()=> copyBtn.textContent = 'Copiar SVG', 1400);
+        }catch(err){
+          copyBtn.textContent = 'No se pudo copiar';
+          setTimeout(()=> copyBtn.textContent = 'Copiar SVG', 1400);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

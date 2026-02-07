@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IFP, Indonesia — Dashboard (Operaciones MBA)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --card:#101f3d;
+      --muted:#a9b7d0;
+      --text:#e9f0ff;
+      --accent:#4da3ff;
+      --accent2:#7ee3c1;
+      --warn:#ffb020;
+      --bad:#ff5a7a;
+      --ok:#3fe07f;
+      --line:rgba(255,255,255,.10);
+      --shadow: 0 10px 24px rgba(0,0,0,.35);
+      --radius: 16px;
+      --radius2: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 700px at 20% 0%, rgba(77,163,255,.20), transparent 55%),
+                  radial-gradient(900px 600px at 90% 15%, rgba(126,227,193,.16), transparent 60%),
+                  linear-gradient(180deg, #070c18, #0b1220 45%, #060b14);
+      color:var(--text);
+      font-family:var(--sans);
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:24px 16px 48px;
+    }
+    header{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      padding:18px 18px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border-radius:var(--radius2);
+      box-shadow:var(--shadow);
+    }
+    .title{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+    .badge{
+      width:44px;height:44px;
+      border-radius:14px;
+      background:linear-gradient(135deg, rgba(77,163,255,.95), rgba(126,227,193,.85));
+      box-shadow:0 10px 26px rgba(77,163,255,.20);
+      display:grid;place-items:center;
+      color:#081024;
+      font-weight:800;
+    }
+    h1{margin:0; font-size: clamp(18px, 2.4vw, 28px); letter-spacing:.2px}
+    .subtitle{
+      margin:6px 0 0;
+      color:var(--muted);
+      max-width:760px;
+      line-height:1.35;
+      font-size: 13.5px;
+    }
+    .toolbar{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .pill{
+      display:flex; gap:8px; align-items:center;
+      padding:9px 12px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-size:12.5px;
+      white-space:nowrap;
+    }
+    .pill strong{color:var(--text); font-weight:700}
+    .btn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:650;
+      font-size:13px;
+      display:inline-flex; gap:8px; align-items:center;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.16)}
+    .btn:active{transform:translateY(0px)}
+    .grid{
+      margin-top:16px;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr}
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:var(--radius2);
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card .head{
+      padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card .head h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.25px;
+    }
+    .card .head .meta{
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .card .body{padding:14px 16px}
+    .kpiRow{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+    @media (max-width: 980px){
+      .kpiRow{grid-template-columns: repeat(2, 1fr)}
+    }
+    @media (max-width: 520px){
+      .kpiRow{grid-template-columns: 1fr}
+    }
+    .kpi{
+      padding:12px 12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(0,0,0,.12);
+    }
+    .kpi .label{color:var(--muted); font-size:12px}
+    .kpi .value{margin-top:6px; font-size:13px; font-weight:750; line-height:1.2}
+    .kpi .hint{margin-top:6px; color:rgba(233,240,255,.82); font-size:12px; line-height:1.25}
+    .tag{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      padding:6px 10px;
+      border-radius:999px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .tag .dot{width:8px;height:8px;border-radius:50%}
+    .dot.ok{background:var(--ok)}
+    .dot.warn{background:var(--warn)}
+    .dot.bad{background:var(--bad)}
+    .sectionTitle{
+      display:flex; gap:10px; align-items:center;
+      margin:0 0 10px;
+      font-size:13px;
+      color:var(--text);
+      letter-spacing:.2px;
+    }
+    .sectionTitle .chip{
+      font-family:var(--mono);
+      font-size:11px;
+      color:rgba(233,240,255,.88);
+      border:1px solid var(--line);
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.03);
+    }
+    .list{
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .item{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(0,0,0,.10);
+      padding:12px;
+    }
+    .item h3{
+      margin:0;
+      font-size:13px;
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .item p{
+      margin:8px 0 0;
+      color:rgba(233,240,255,.86);
+      line-height:1.42;
+      font-size:13px;
+    }
+    .mini{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:8px;
+      line-height:1.35;
+    }
+
+    /* Tabs */
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap;
+      padding:10px 16px;
+      border-bottom:1px solid var(--line);
+      background:rgba(0,0,0,.08);
+    }
+    .tab{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      padding:8px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:650;
+      font-size:12.5px;
+      user-select:none;
+    }
+    .tab.active{
+      background:rgba(77,163,255,.16);
+      border-color:rgba(77,163,255,.35);
+      color:rgba(233,240,255,.95);
+    }
+    .tabPanel{display:none}
+    .tabPanel.active{display:block}
+
+    /* Flow area */
+    .flowWrap{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    .flowCard{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(0,0,0,.10);
+      overflow:hidden;
+    }
+    .flowTop{
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .flowTop .left{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .flowTop .name{
+      font-weight:800;
+      font-size:13px;
+    }
+    .flowTop .sub{
+      color:var(--muted);
+      font-size:12px;
+    }
+    .flowTop .actions{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    }
+    .flowTop .actions .btn{padding:8px 10px; border-radius:12px; font-size:12.5px}
+    .svgBox{
+      padding:10px;
+      overflow:auto;
+      max-height:360px;
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.08));
+    }
+    .svgHint{
+      padding:10px 12px;
+      border-top:1px solid var(--line);
+      color:rgba(233,240,255,.86);
+      font-size:12.5px;
+      line-height:1.35;
+    }
+    .prosCons{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 680px){
+      .prosCons{grid-template-columns: 1fr}
+    }
+    .pc{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px 12px;
+      background:rgba(0,0,0,.08);
+    }
+    .pc h4{
+      margin:0;
+      font-size:12.5px;
+      display:flex; gap:8px; align-items:center;
+    }
+    .pc ul{
+      margin:8px 0 0;
+      padding-left:18px;
+      color:rgba(233,240,255,.86);
+      font-size:12.8px;
+      line-height:1.4;
+    }
+    .icon{
+      width:18px;height:18px;border-radius:6px; display:grid;place-items:center;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:rgba(233,240,255,.90);
+      font-family:var(--mono);
+      font-size:12px;
+    }
+
+    /* Cause tree */
+    .tree{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px;
+      background:rgba(0,0,0,.10);
+    }
+    details{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 10px;
+      background:rgba(255,255,255,.02);
+    }
+    details + details{margin-top:10px}
+    summary{
+      cursor:pointer;
+      list-style:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-weight:800;
+      font-size:13px;
+    }
+    summary::-webkit-details-marker{display:none}
+    .sumRight{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;
+      color:var(--muted); font-weight:650; font-size:12px;
+    }
+    .sumRight .sev{
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.08);
+      font-family:var(--mono);
+      font-size:11px;
+      color:rgba(233,240,255,.85);
+    }
+    .tree ul{margin:10px 0 0; padding-left:18px; color:rgba(233,240,255,.86); line-height:1.45; font-size:13px}
+    .tree .note{margin-top:8px; color:var(--muted); font-size:12px; line-height:1.35}
+
+    /* Modal for large flow */
+    .modal{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.65);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index: 9999;
+    }
+    .modal.open{display:flex}
+    .modalBox{
+      width:min(1200px, 100%);
+      height:min(820px, 92vh);
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.18);
+      background:linear-gradient(180deg, rgba(20,30,58,.98), rgba(10,16,35,.98));
+      box-shadow: 0 18px 50px rgba(0,0,0,.55);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .modalBar{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.14);
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; flex-wrap:wrap;
+    }
+    .modalBar .t{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      font-weight:850; letter-spacing:.2px;
+    }
+    .modalBar .t small{color:var(--muted); font-weight:650}
+    .modalBar .controls{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    }
+    .modalCanvas{
+      position:relative;
+      flex:1;
+      overflow:hidden;
+      background: radial-gradient(800px 500px at 20% 10%, rgba(77,163,255,.14), transparent 60%),
+                  radial-gradient(700px 450px at 90% 15%, rgba(126,227,193,.10), transparent 60%),
+                  rgba(0,0,0,.18);
+    }
+    .zoomLayer{
+      position:absolute;
+      inset:0;
+      transform-origin: 0 0;
+      cursor:grab;
+      display:grid;
+      place-items:center;
+      padding:18px;
+    }
+    .zoomLayer:active{cursor:grabbing}
+    .modalFoot{
+      padding:10px 14px;
+      border-top:1px solid rgba(255,255,255,.14);
+      color:var(--muted);
+      font-size:12.5px;
+      line-height:1.35;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .kbd{
+      font-family:var(--mono);
+      border:1px solid rgba(255,255,255,.18);
+      padding:2px 6px;
+      border-radius:8px;
+      color:rgba(233,240,255,.85);
+      background:rgba(255,255,255,.04);
+      font-size:11px;
+    }
+
+    /* Small helpers */
+    .muted{color:var(--muted)}
+    .hr{
+      height:1px; background:var(--line); margin:12px 0;
+    }
+    .callout{
+      border:1px solid rgba(77,163,255,.28);
+      background:rgba(77,163,255,.08);
+      border-radius:16px;
+      padding:12px;
+      color:rgba(233,240,255,.90);
+      font-size:13px;
+      line-height:1.42;
+    }
+    .callout strong{color:rgba(233,240,255,.98)}
+    .foot{
+      margin-top:14px;
+      color:rgba(233,240,255,.72);
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    /* SVG styling */
+    svg{max-width:100%}
+    .node{fill: rgba(255,255,255,.05); stroke: rgba(255,255,255,.18); stroke-width:1.2}
+    .nodeAccent{fill: rgba(77,163,255,.14); stroke: rgba(77,163,255,.34)}
+    .nodeGreen{fill: rgba(126,227,193,.12); stroke: rgba(126,227,193,.30)}
+    .nodeWarn{fill: rgba(255,176,32,.12); stroke: rgba(255,176,32,.30)}
+    .nodeBad{fill: rgba(255,90,122,.10); stroke: rgba(255,90,122,.28)}
+    .label{fill: rgba(233,240,255,.93); font-size:12px; font-weight:750}
+    .small{fill: rgba(233,240,255,.78); font-size:11px; font-weight:650}
+    .arrow{stroke: rgba(233,240,255,.55); stroke-width:1.2; fill:none; marker-end:url(#arrow)}
+    .dash{stroke-dasharray: 5 5}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <div class="badge">OM</div>
+        <div>
+          <h1>IFP, Indonesia — Dashboard de análisis (Gestión de Operaciones MBA)</h1>
+          <p class="subtitle">
+            Decisión de diseño de red y abastecimiento para una nueva filial forestal en Indonesia (madera aserrada y contrachapada),
+            con foco en riesgos operativos/políticos y trade-offs de centralización vs. dispersión.
+          </p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="pill"><strong>Contexto</strong> 2002 · Indonesia · Inversión intensiva</div>
+        <div class="pill"><strong>Decisión</strong> Disperso vs Centralizado vs Híbrido</div>
+        <button class="btn" id="btnExpandAll" title="Expandir/colapsar todas las causas">
+          ⟲ Causas: expandir/colapsar
+        </button>
+        <button class="btn" id="btnToTop" title="Ir arriba">↑ Inicio</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT MAIN -->
+      <section class="card">
+        <div class="head">
+          <h2>Resumen operativo del caso (sin relleno)</h2>
+          <div class="meta">
+            <span class="tag"><span class="dot warn"></span> Alta incertidumbre</span>
+            <span class="tag"><span class="dot bad"></span> Riesgo institucional</span>
+            <span class="tag"><span class="dot ok"></span> Upside económico</span>
+          </div>
+        </div>
+
+        <div class="body">
+          <div class="callout">
+            <strong>Situación:</strong> IFP (multinacional de minería/metales) evalúa entrar por primera vez a <strong>productos forestales</strong> en Indonesia.
+            El equipo (Kristin y Nicole) debe recomendar el <strong>diseño de abastecimiento + ubicación</strong> de aserraderos/trituradoras para producir y exportar a Europa. El gran problema no es “ingeniería pura”, sino <strong>operar bajo alta complejidad política, permisos, infraestructura exigida, corrupción y hostilidad local</strong>.
+          </div>
+
+          <div class="kpiRow">
+            <div class="kpi">
+              <div class="label">Producto / mercado</div>
+              <div class="value">Madera aserrada + contrachapada → Europa</div>
+              <div class="hint">Apuesta por demanda europea creciente y costos competitivos.</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Recurso crítico</div>
+              <div class="value">Bosque tropical (alto rendimiento comercial)</div>
+              <div class="hint">Indonesia: rendimiento 5–10× vs África/LatAm, pero con fricción institucional.</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Estructura estatal</div>
+              <div class="value">Gobierno fragmentado + permisos lentos</div>
+              <div class="hint">Conflictos centro–local, presiones “quid pro quo” de infraestructura.</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Nodo de decisión</div>
+              <div class="value">Red de planta y suministro</div>
+              <div class="hint">Impacta costo total, control, confiabilidad y exposición política.</div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <h3 class="sectionTitle">Lo esencial que debes retener <span class="chip">qué está en juego</span></h3>
+          <div class="list">
+            <div class="item">
+              <h3>1) “Diseño de red” bajo riesgo institucional (no solo costo unitario)</h3>
+              <p>
+                En Indonesia, la capacidad de ejecutar depende de permisos, alineamiento con múltiples niveles de gobierno y manejo de la presión
+                para construir/mantener infraestructura comunitaria. Por tanto, el diseño de operaciones debe minimizar <strong>exposición a fallas institucionales</strong>
+                (permisos, extorsión local, demandas de inversión) sin destruir la economía del proyecto.
+              </p>
+            </div>
+            <div class="item">
+              <h3>2) Restricciones de industria: concesiones, logística fluvial y tamaño de buques</h3>
+              <p>
+                Por ley, las concesiones forestales son de indonesios; en la práctica, extranjeros operan vía arreglos/contratos y pago de regalías.
+                Limitaciones de ríos y calado restringen el tamaño de buques, afectando la economía del transporte (10k TPM vs 40k TPM).
+              </p>
+            </div>
+            <div class="item">
+              <h3>3) Tres configuraciones: dispersa, centralizada, híbrida</h3>
+              <p>
+                (a) <strong>Dispersa</strong>: 8 trituradoras medianas río arriba; fuerte anclaje local y alta necesidad de infraestructura. Exportación directa en buques ~10k TPM.
+                (b) <strong>Centralizada</strong>: una planta grande en desembocadura con muelle profundo; compra de troncos en subastas (precio volátil) y buques ~40k TPM.
+                (c) <strong>Híbrida</strong>: producción descentralizada como la dispersa, pero consolidación en puerto profundo para buques grandes.
+              </p>
+            </div>
+            <div class="item">
+              <h3>4) El dilema real: supply assurance vs flexibilidad vs control vs “costo político”</h3>
+              <p>
+                La opción “barata” en papel puede volverse inviable por obligaciones de infraestructura y conflictos locales.
+                La opción “controlable” puede perder margen por precios volátiles de troncos y dependencia de subastas.
+                La opción “equilibrada” puede heredar complejidades de ambas y agregar coordinación (barcazas, transbordo).
+              </p>
+            </div>
+          </div>
+
+          <div class="foot">
+            Nota: El caso enfatiza que el diseño debe explicitar riesgos y mecanismos de mitigación (gobierno, comunidad, cadena logística, suministro).
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT SIDE -->
+      <aside class="card">
+        <div class="head">
+          <h2>Mapa de decisión y “drivers” operativos</h2>
+          <div class="meta"><span class="muted">OM: red + riesgo + servicio</span></div>
+        </div>
+        <div class="body">
+          <h3 class="sectionTitle">Drivers de diseño <span class="chip">operaciones</span></h3>
+          <div class="list">
+            <div class="item">
+              <h3><span class="icon">R</span> Riesgo institucional</h3>
+              <p class="mini">Permisos (hasta años), corrupción/acoso local, “quid pro quo” de infraestructura, xenofobia/seguridad.</p>
+            </div>
+            <div class="item">
+              <h3><span class="icon">S</span> Seguridad de suministro</h3>
+              <p class="mini">Concesiones locales fragmentadas; contratos vs compras spot (subastas) con precios volátiles.</p>
+            </div>
+            <div class="item">
+              <h3><span class="icon">L</span> Logística y economía de escala</h3>
+              <p class="mini">Buques 10k TPM (ríos) vs 40k TPM (puerto profundo); barcazas y transbordo; lead times.</p>
+            </div>
+            <div class="item">
+              <h3><span class="icon">C</span> Capacidad y mano de obra</h3>
+              <p class="mini">Diseño con tecnología simple e intensiva en trabajo para cumplir directrices del gobierno; staffing local + expatriados.</p>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <h3 class="sectionTitle">Checklist de análisis OM <span class="chip">en clase</span></h3>
+          <div class="tree">
+            <ul>
+              <li><strong>Red:</strong> ¿dónde ubicar capacidad y qué “nodos” controlar?</li>
+              <li><strong>Abastecimiento:</strong> contratos vs spot; incentivos a concesionarios; riesgo de hold-up.</li>
+              <li><strong>Variabilidad:</strong> precio de tronco, clima/lluvias, permisos, disponibilidad de transporte.</li>
+              <li><strong>Cost-to-serve:</strong> infraestructura, community spend, expats, fricción aduanera.</li>
+              <li><strong>Gobernanza:</strong> quién decide y cómo se gestiona el stakeholder map.</li>
+            </ul>
+            <div class="note">Úsalo para estructurar tu respuesta y no quedarte solo en “costo por m³”.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- QUESTIONS + FLOWS + CAUSES -->
+    <section class="card" style="margin-top:14px;">
+      <div class="head">
+        <h2>Preguntas (MBA · Gestión de Operaciones) + Flujos de alternativas</h2>
+        <div class="meta">
+          <span class="tag"><span class="dot warn"></span> Network design</span>
+          <span class="tag"><span class="dot warn"></span> Supply risk</span>
+          <span class="tag"><span class="dot ok"></span> Trade-offs</span>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Secciones">
+        <button class="tab active" data-tab="tabQ" role="tab" aria-selected="true">Preguntas OM</button>
+        <button class="tab" data-tab="tabF" role="tab" aria-selected="false">Flujogramas por opción</button>
+        <button class="tab" data-tab="tabC" role="tab" aria-selected="false">Causas → efectos</button>
+      </div>
+
+      <div class="body">
+        <!-- TAB: QUESTIONS -->
+        <div class="tabPanel active" id="tabQ" role="tabpanel">
+          <h3 class="sectionTitle">Preguntas guía (con teoría adecuada) <span class="chip">OM MBA</span></h3>
+
+          <div class="list">
+            <div class="item">
+              <h3>Q1. ¿Cuál “tipo de proceso” y estrategia de operaciones describe mejor a cada alternativa?</h3>
+              <p>
+                En términos de <strong>product–process matrix</strong> y <strong>diseño de red</strong>, clasifica disperso / centralizado / híbrido.
+                ¿Qué implica para: (i) control, (ii) costos indirectos, (iii) variabilidad de flujo, (iv) robustez?
+              </p>
+              <p class="mini">
+                Pistas teóricas: product–process matrix (Hayes & Wheelwright), trade-off centralización/descentralización,
+                teoría de “fit” entre estrategia competitiva y configuración operativa.
+              </p>
+            </div>
+
+            <div class="item">
+              <h3>Q2. ¿Cómo evaluarías el “costo total” incorporando riesgo político e institucional (no solo OPEX)?</h3>
+              <p>
+                Diseña un marco de <strong>total cost of ownership</strong> que incluya: infraestructura exigida, mantenimiento comunitario,
+                tiempos de permisos, fricción aduanera, necesidad de expatriados y riesgo de interrupción.
+                ¿Cómo convertirías incertidumbre cualitativa en decisiones comparables?
+              </p>
+              <p class="mini">
+                Pistas: TCO + risk-adjusted cash flows, escenarios, análisis de sensibilidad, real options (expandir/abandonar).
+              </p>
+            </div>
+
+            <div class="item">
+              <h3>Q3. ¿Qué riesgos de “hold-up” y “contratos incompletos” emergen en cada alternativa?</h3>
+              <p>
+                En disperso/híbrido, concesionarios locales controlan acceso al recurso y obras; en centralizado, dependes de subastas spot.
+                Identifica dónde hay <strong>dependencia bilateral</strong> y qué mecanismos de gobierno (contratos, JV, incentivos, garantías,
+                auditoría, redundancia de suministro) reducen el riesgo.
+              </p>
+              <p class="mini">Pistas: economía de costos de transacción (Williamson), principal–agente, diseño de incentivos y monitoreo.</p>
+            </div>
+
+            <div class="item">
+              <h3>Q4. ¿Dónde están los cuellos de botella y las fuentes de variabilidad (operaciones + logística)?</h3>
+              <p>
+                Mapea la cadena “bosque → procesamiento → puerto → buque → Europa” e identifica variabilidad por clima,
+                infraestructura, lead time fluvial, disponibilidad de buques y gestión multi-actor.
+                ¿Qué buffers (inventario, capacidad, tiempo) usarías y dónde?
+              </p>
+              <p class="mini">
+                Pistas: teoría de buffers (variabilidad–inventario–capacidad), Little’s Law (conceptual),
+                supply chain risk management.
+              </p>
+            </div>
+
+            <div class="item">
+              <h3>Q5. ¿Qué indicadores (KPIs) implementarías para gobernar la operación en Indonesia en el primer año?</h3>
+              <p>
+                Propón un tablero balanceado que mida: confiabilidad de suministro, costos logísticos, productividad,
+                cumplimiento socio-comunitario, seguridad, y “tiempo de ciclo” de permisos/gestiones.
+              </p>
+              <p class="mini">
+                Pistas: performance management en supply chain (OTIF, lead time, yield, downtime),
+                métricas de riesgo y compliance.
+              </p>
+            </div>
+
+            <div class="item">
+              <h3>Q6. Si priorizas resiliencia, ¿qué “diseño robusto” recomendarías y por qué?</h3>
+              <p>
+                Justifica usando <strong>robustez</strong> (escenarios adversos) y <strong>flexibilidad</strong> (capacidad de reconfigurar),
+                no solo NPV base. ¿Qué “opciones reales” incorporarías (faseo, pilotos, ramp-up modular, salida)?
+              </p>
+              <p class="mini">Pistas: robust optimization (conceptual), real options, staged investment, modularity en red.</p>
+            </div>
+          </div>
+
+          <div class="foot">
+            Sugerencia práctica: responde Q2+Q3 primero (riesgo/contratos) y recién después optimizas logística/costo.
+          </div>
+        </div>
+
+        <!-- TAB: FLOWS -->
+        <div class="tabPanel" id="tabF" role="tabpanel">
+          <h3 class="sectionTitle">Flujos operativos por alternativa <span class="chip">click: ver en grande</span></h3>
+
+          <div class="flowWrap">
+            <!-- Disperso -->
+            <div class="flowCard">
+              <div class="flowTop">
+                <div class="left">
+                  <div class="name">Sistema de dispersión</div>
+                  <div class="sub">8 trituradoras medianas interior · exportación directa (buques ~10k TPM)</div>
+                </div>
+                <div class="actions">
+                  <button class="btn" data-open-modal="flowDisperso">⤢ Ver grande</button>
+                </div>
+              </div>
+
+              <div class="svgBox">
+                <div id="flowDisperso" class="flowSvg">
+                  <!-- Inline SVG -->
+                  <svg viewBox="0 0 980 260" aria-label="Flujo dispersión" role="img">
+                    <defs>
+                      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L10,3 L0,6 Z" fill="rgba(233,240,255,.55)"></path>
+                      </marker>
+                    </defs>
+
+                    <rect class="node nodeGreen" x="30" y="35" rx="14" ry="14" width="190" height="74"></rect>
+                    <text class="label" x="55" y="65">Concesión local</text>
+                    <text class="small" x="55" y="87">Dueño indonesio + contrato</text>
+
+                    <rect class="node" x="270" y="35" rx="14" ry="14" width="210" height="74"></rect>
+                    <text class="label" x="292" y="65">Tala + logística local</text>
+                    <text class="small" x="292" y="87">Carreteras/puentes + transporte</text>
+
+                    <rect class="node nodeAccent" x="530" y="35" rx="14" ry="14" width="210" height="74"></rect>
+                    <text class="label" x="554" y="65">Trituradora interior</text>
+                    <text class="small" x="554" y="87">Tecnología simple + mano de obra</text>
+
+                    <rect class="node nodeWarn" x="790" y="35" rx="14" ry="14" width="160" height="74"></rect>
+                    <text class="label" x="812" y="65">Puerto río arriba</text>
+                    <text class="small" x="812" y="87">Calado limitado</text>
+
+                    <rect class="node nodeBad" x="650" y="160" rx="14" ry="14" width="300" height="74"></rect>
+                    <text class="label" x="675" y="190">Buque ~10k TPM → Europa</text>
+                    <text class="small" x="675" y="212">Menor economía de escala marítima</text>
+
+                    <path class="arrow" d="M220 72 L270 72"></path>
+                    <path class="arrow" d="M480 72 L530 72"></path>
+                    <path class="arrow" d="M740 72 L790 72"></path>
+                    <path class="arrow" d="M870 110 L830 160"></path>
+
+                    <rect class="node" x="30" y="160" rx="14" ry="14" width="560" height="74"></rect>
+                    <text class="label" x="55" y="190">Exposición clave</text>
+                    <text class="small" x="55" y="212">
+                      Alta: infraestructura por concesión + relación local intensa + mantenimiento comunitario + multi-aduanas/repuestos
+                    </text>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="svgHint">
+                <div class="prosCons">
+                  <div class="pc">
+                    <h4><span class="icon">+</span> Pros</h4>
+                    <ul>
+                      <li>Mayor “anclaje” local (empleo y presencia en zonas).</li>
+                      <li>Suministro más “asegurado” si contratos con concesionarios son estables.</li>
+                      <li>Menor dependencia de compras spot en subastas.</li>
+                    </ul>
+                  </div>
+                  <div class="pc">
+                    <h4><span class="icon">–</span> Contras</h4>
+                    <ul>
+                      <li>Altísima necesidad de carreteras/puentes y riesgo de obligaciones perpetuas.</li>
+                      <li>Coordinación compleja (8 sitios), repuestos por múltiples puertos/aduanas.</li>
+                      <li>Menor economía en flete marítimo (buques más pequeños).</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Centralizado -->
+            <div class="flowCard">
+              <div class="flowTop">
+                <div class="left">
+                  <div class="name">Sistema centralizado</div>
+                  <div class="sub">1 planta en desembocadura · compra de troncos en subastas · buques ~40k TPM</div>
+                </div>
+                <div class="actions">
+                  <button class="btn" data-open-modal="flowCentral">⤢ Ver grande</button>
+                </div>
+              </div>
+
+              <div class="svgBox">
+                <div id="flowCentral" class="flowSvg">
+                  <svg viewBox="0 0 980 260" aria-label="Flujo centralizado" role="img">
+                    <defs>
+                      <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L10,3 L0,6 Z" fill="rgba(233,240,255,.55)"></path>
+                      </marker>
+                    </defs>
+
+                    <rect class="node nodeWarn" x="30" y="35" rx="14" ry="14" width="220" height="74"></rect>
+                    <text class="label" x="55" y="65">Subastas de leños</text>
+                    <text class="small" x="55" y="87">Precio volátil · sin contratos largos</text>
+
+                    <rect class="node" x="290" y="35" rx="14" ry="14" width="200" height="74"></rect>
+                    <text class="label" x="312" y="65">Transporte a planta</text>
+                    <text class="small" x="312" y="87">~2 semanas por viaje (aprox.)</text>
+
+                    <rect class="node nodeAccent" x="530" y="35" rx="14" ry="14" width="240" height="74"></rect>
+                    <text class="label" x="554" y="65">Planta central + muelle</text>
+                    <text class="small" x="554" y="87">Aguas profundas · 40k TPM</text>
+
+                    <rect class="node nodeGreen" x="810" y="35" rx="14" ry="14" width="150" height="74"></rect>
+                    <text class="label" x="830" y="65">Exportación</text>
+                    <text class="small" x="830" y="87">Buque grande</text>
+
+                    <rect class="node nodeBad" x="650" y="160" rx="14" ry="14" width="310" height="74"></rect>
+                    <text class="label" x="675" y="190">Buque ~40k TPM → Europa</text>
+                    <text class="small" x="675" y="212">Mejor economía de escala marítima</text>
+
+                    <path class="arrow" style="marker-end:url(#arrow2)" d="M250 72 L290 72"></path>
+                    <path class="arrow" style="marker-end:url(#arrow2)" d="M490 72 L530 72"></path>
+                    <path class="arrow" style="marker-end:url(#arrow2)" d="M770 72 L810 72"></path>
+                    <path class="arrow" style="marker-end:url(#arrow2)" d="M885 110 L845 160"></path>
+
+                    <rect class="node" x="30" y="160" rx="14" ry="14" width="560" height="74"></rect>
+                    <text class="label" x="55" y="190">Exposición clave</text>
+                    <text class="small" x="55" y="212">
+                      Alta: precio de tronco (spot) + disponibilidad de lotes + riesgo de escasez/renegociación; menor complejidad multi-sitio
+                    </text>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="svgHint">
+                <div class="prosCons">
+                  <div class="pc">
+                    <h4><span class="icon">+</span> Pros</h4>
+                    <ul>
+                      <li>Mayor control operativo en un solo sitio (calidad, mantenimiento, repuestos).</li>
+                      <li>Mejor economía del flete marítimo (buques grandes).</li>
+                      <li>Menor “costo político” de infraestructura distribuida por concesión.</li>
+                    </ul>
+                  </div>
+                  <div class="pc">
+                    <h4><span class="icon">–</span> Contras</h4>
+                    <ul>
+                      <li>Dependencia de subastas: volatilidad y riesgo de abastecimiento.</li>
+                      <li>Menor capacidad de “asegurar” recurso con contratos estables.</li>
+                      <li>Riesgo de interrupción si mercado local/japonés “absorbe” oferta.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Híbrido -->
+            <div class="flowCard">
+              <div class="flowTop">
+                <div class="left">
+                  <div class="name">Sistema híbrido</div>
+                  <div class="sub">8 trituradoras interior + barcazas a puerto profundo · buques ~40k TPM</div>
+                </div>
+                <div class="actions">
+                  <button class="btn" data-open-modal="flowHibrido">⤢ Ver grande</button>
+                </div>
+              </div>
+
+              <div class="svgBox">
+                <div id="flowHibrido" class="flowSvg">
+                  <svg viewBox="0 0 980 300" aria-label="Flujo híbrido" role="img">
+                    <defs>
+                      <marker id="arrow3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L10,3 L0,6 Z" fill="rgba(233,240,255,.55)"></path>
+                      </marker>
+                    </defs>
+
+                    <rect class="node nodeGreen" x="30" y="40" rx="14" ry="14" width="200" height="74"></rect>
+                    <text class="label" x="55" y="70">Concesiones locales</text>
+                    <text class="small" x="55" y="92">Contratos + regalías</text>
+
+                    <rect class="node nodeAccent" x="270" y="40" rx="14" ry="14" width="220" height="74"></rect>
+                    <text class="label" x="295" y="70">8 trituradoras interior</text>
+                    <text class="small" x="295" y="92">Como dispersión</text>
+
+                    <rect class="node" x="530" y="40" rx="14" ry="14" width="200" height="74"></rect>
+                    <text class="label" x="553" y="70">Barcazas / río</text>
+                    <text class="small" x="553" y="92">Transporte a transbordo</text>
+
+                    <rect class="node nodeWarn" x="770" y="40" rx="14" ry="14" width="180" height="74"></rect>
+                    <text class="label" x="792" y="70">Puerto profundo</text>
+                    <text class="small" x="792" y="92">Consolidación</text>
+
+                    <rect class="node nodeBad" x="650" y="170" rx="14" ry="14" width="300" height="74"></rect>
+                    <text class="label" x="675" y="200">Buque ~40k TPM → Europa</text>
+                    <text class="small" x="675" y="222">Economía de escala marítima</text>
+
+                    <path class="arrow" style="marker-end:url(#arrow3)" d="M230 77 L270 77"></path>
+                    <path class="arrow" style="marker-end:url(#arrow3)" d="M490 77 L530 77"></path>
+                    <path class="arrow" style="marker-end:url(#arrow3)" d="M730 77 L770 77"></path>
+                    <path class="arrow" style="marker-end:url(#arrow3)" d="M860 114 L820 170"></path>
+
+                    <rect class="node" x="30" y="170" rx="14" ry="14" width="580" height="100"></rect>
+                    <text class="label" x="55" y="200">Exposición clave</text>
+                    <text class="small" x="55" y="222">
+                      Hereda infraestructura y fricción local (como dispersión) + agrega coordinación de transbordo (barcazas, puerto)
+                    </text>
+                    <text class="small" x="55" y="244">
+                      Beneficio: captura economía marítima (como centralizado) sin depender totalmente de subastas spot
+                    </text>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="svgHint">
+                <div class="prosCons">
+                  <div class="pc">
+                    <h4><span class="icon">+</span> Pros</h4>
+                    <ul>
+                      <li>Mejor balance: contratos con concesionarios + buques grandes.</li>
+                      <li>Posible reducción de pérdida/merma vía mejor logística marítima.</li>
+                      <li>Puede “comprar” legitimidad local por empleo descentralizado.</li>
+                    </ul>
+                  </div>
+                  <div class="pc">
+                    <h4><span class="icon">–</span> Contras</h4>
+                    <ul>
+                      <li>Complejidad dual: multi-sitio + nodo de transbordo.</li>
+                      <li>Riesgo operacional adicional: barcazas, colas, clima y coordinación.</li>
+                      <li>Puede acumular obligaciones comunitarias en múltiples frentes.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="foot">
+            Tip: la discusión OM no es “cuál cuesta menos”, sino qué diseño mantiene desempeño bajo escenarios adversos (permisos, infraestructura, precio de leños, clima).
+          </div>
+        </div>
+
+        <!-- TAB: CAUSES -->
+        <div class="tabPanel" id="tabC" role="tabpanel">
+          <h3 class="sectionTitle">Causas primigenias → derivadas → efectos finales <span class="chip">árbol expandible</span></h3>
+
+          <div class="tree" id="causeTree">
+            <details open>
+              <summary>
+                A) Causas primigenias (root causes)
+                <span class="sumRight">
+                  <span class="sev">impacto: ALTO</span>
+                  <span class="sev">control: BAJO–MEDIO</span>
+                </span>
+              </summary>
+              <ul>
+                <li><strong>Fragmentación institucional:</strong> gobierno central vs gobiernos locales con prioridades distintas; permisos lentos y “escalamiento” a niveles ministeriales.</li>
+                <li><strong>Incentivo estatal a “infraestructura quid pro quo”:</strong> presión para construir y mantener carreteras, puentes y servicios comunitarios más allá del proyecto.</li>
+                <li><strong>Estructura de propiedad de concesiones:</strong> legalmente locales; extranjeros operan vía contratos/arreglos → riesgo de dependencia y renegociación.</li>
+                <li><strong>Legado negativo del sector:</strong> explotación histórica sin reforestación ni valor agregado local → hostilidad social y presión política.</li>
+                <li><strong>Geografía y logística:</strong> ríos poco profundos limitan buques grandes en interior; archipiélago complejo con múltiples puntos de fricción.</li>
+              </ul>
+              <div class="note">Lectura OM: estas causas empujan el problema desde “costo unitario” hacia “diseño robusto y gobernanza”.</div>
+            </details>
+
+            <details open>
+              <summary>
+                B) Causas derivadas (mecanismos operativos)
+                <span class="sumRight">
+                  <span class="sev">impacto: ALTO</span>
+                  <span class="sev">control: MEDIO</span>
+                </span>
+              </summary>
+              <ul>
+                <li><strong>Riesgo de abastecimiento:</strong> (centralizado) compras spot en subastas con volatilidad; (disperso/híbrido) riesgo contractual/hold-up con concesionarios.</li>
+                <li><strong>Costo político-operativo de infraestructura:</strong> carreteras/puentes por concesión y mantenimiento prolongado; potencial de “creep” de compromisos.</li>
+                <li><strong>Complejidad de coordinación:</strong> 8 sitios interior (disperso/híbrido) elevan costos de supervisión, calidad, repuestos y gestión social.</li>
+                <li><strong>Fricción de importación de equipos/repuestos:</strong> múltiples puertos y agentes aduaneros aumentan demora e incertidumbre (más severo en disperso).</li>
+                <li><strong>Economía de escala de transporte marítimo:</strong> buques pequeños reducen eficiencia; buques grandes requieren consolidación y puerto profundo.</li>
+              </ul>
+              <div class="note">Lectura OM: estas derivadas determinan variabilidad, buffers requeridos, y el “cost-to-serve” real.</div>
+            </details>
+
+            <details open>
+              <summary>
+                C) Efectos finales (consecuencias en desempeño)
+                <span class="sumRight">
+                  <span class="sev">impacto: MUY ALTO</span>
+                  <span class="sev">riesgo: sistémico</span>
+                </span>
+              </summary>
+              <ul>
+                <li><strong>Riesgo de inviabilidad del proyecto:</strong> permisos + obligaciones de infraestructura pueden erosionar retornos y retrasar ramp-up.</li>
+                <li><strong>Degradación de confiabilidad de suministro:</strong> interrupciones por clima, conflictos locales, renegociaciones o escasez spot.</li>
+                <li><strong>Escalada de costos y pérdida de competitividad:</strong> TCO sube (infraestructura, expats, compliance, demoras); margen cae aun con buen precio en Europa.</li>
+                <li><strong>Riesgo reputacional:</strong> conflictos comunitarios o percepción de explotación puede afectar licencia social para operar.</li>
+                <li><strong>Rigidez estratégica:</strong> activos “anclados” (carreteras/puentes/servicios) dificultan salida o reconfiguración.</li>
+              </ul>
+              <div class="note">Lectura OM: la configuración elegida debe maximizar desempeño bajo estrés (no solo en el escenario “base”).</div>
+            </details>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="callout">
+            <strong>Cómo usar este árbol en tu respuesta:</strong> elige 2–3 causas primigenias, conéctalas con 3–5 derivadas concretas por alternativa,
+            y aterriza en 2–3 efectos medibles (tiempo de permisos, costo total, OTIF/continuidad, exposure reputacional).
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="foot">
+      Fuente: Caso “IFP, Indonesia” (versión en español). :contentReference[oaicite:1]{index=1}
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal" id="modal">
+    <div class="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modalBar">
+        <div class="t" id="modalTitle">
+          <span id="modalName">Flujo</span> <small id="modalSub">— vista ampliada</small>
+        </div>
+        <div class="controls">
+          <button class="btn" id="zoomOut">− Zoom</button>
+          <button class="btn" id="zoomIn">＋ Zoom</button>
+          <button class="btn" id="zoomReset">↺ Reset</button>
+          <button class="btn" id="modalClose">✕ Cerrar</button>
+        </div>
+      </div>
+      <div class="modalCanvas" id="modalCanvas">
+        <div class="zoomLayer" id="zoomLayer"></div>
+      </div>
+      <div class="modalFoot">
+        <div>Arrastra para mover · Zoom para leer detalles</div>
+        <div>
+          Atajos: <span class="kbd">+</span>/<span class="kbd">-</span> · <span class="kbd">0</span> reset · <span class="kbd">Esc</span> cerrar
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Tabs ----------
+    const tabs = Array.from(document.querySelectorAll('.tab'));
+    const panels = Array.from(document.querySelectorAll('.tabPanel'));
+    tabs.forEach(t => {
+      t.addEventListener('click', () => {
+        tabs.forEach(x => x.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById(t.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ---------- Expand / Collapse All (Cause Tree) ----------
+    const btnExpandAll = document.getElementById('btnExpandAll');
+    const tree = document.getElementById('causeTree');
+    let expanded = true;
+    btnExpandAll.addEventListener('click', () => {
+      const nodes = tree.querySelectorAll('details');
+      expanded = !expanded;
+      nodes.forEach(d => d.open = expanded);
+    });
+
+    // ---------- To top ----------
+    document.getElementById('btnToTop').addEventListener('click', () => {
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+
+    // ---------- Modal: zoom + pan ----------
+    const modal = document.getElementById('modal');
+    const zoomLayer = document.getElementById('zoomLayer');
+    const modalName = document.getElementById('modalName');
+    const modalSub = document.getElementById('modalSub');
+    const modalClose = document.getElementById('modalClose');
+    const zoomIn = document.getElementById('zoomIn');
+    const zoomOut = document.getElementById('zoomOut');
+    const zoomReset = document.getElementById('zoomReset');
+    const modalCanvas = document.getElementById('modalCanvas');
+
+    let scale = 1;
+    let tx = 0, ty = 0;
+    let dragging = false;
+    let lastX = 0, lastY = 0;
+
+    function applyTransform(){
+      zoomLayer.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }
+    function resetTransform(){
+      scale = 1;
+      tx = 0; ty = 0;
+      applyTransform();
+    }
+    function openModal(flowId, title, subtitle){
+      // clone SVG container content
+      const src = document.getElementById(flowId);
+      zoomLayer.innerHTML = '';
+      const clone = src.cloneNode(true);
+      clone.style.maxWidth = '100%';
+      clone.style.width = '100%';
+      zoomLayer.appendChild(clone);
+
+      modalName.textContent = title;
+      modalSub.textContent = subtitle;
+
+      resetTransform();
+      modal.classList.add('open');
+    }
+    function closeModal(){
+      modal.classList.remove('open');
+      zoomLayer.innerHTML = '';
+    }
+
+    // Buttons to open modal
+    document.querySelectorAll('[data-open-modal]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-open-modal');
+        if(id === 'flowDisperso') openModal(id, 'Sistema de dispersión', '8 trituradoras interior · buques ~10k TPM');
+        if(id === 'flowCentral') openModal(id, 'Sistema centralizado', 'Subastas spot · planta + muelle profundo · buques ~40k TPM');
+        if(id === 'flowHibrido') openModal(id, 'Sistema híbrido', '8 trituradoras + barcazas · consolidación · buques ~40k TPM');
+      });
+    });
+
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+
+    zoomIn.addEventListener('click', () => {
+      scale = Math.min(3.2, scale + 0.15);
+      applyTransform();
+    });
+    zoomOut.addEventListener('click', () => {
+      scale = Math.max(0.6, scale - 0.15);
+      applyTransform();
+    });
+    zoomReset.addEventListener('click', resetTransform);
+
+    // Pan with mouse
+    modalCanvas.addEventListener('mousedown', (e) => {
+      dragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+    window.addEventListener('mousemove', (e) => {
+      if(!dragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      tx += dx;
+      ty += dy;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      applyTransform();
+    });
+    window.addEventListener('mouseup', () => dragging = false);
+
+    // Touch pan
+    modalCanvas.addEventListener('touchstart', (e) => {
+      if(e.touches.length !== 1) return;
+      dragging = true;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+    }, {passive:true});
+
+    modalCanvas.addEventListener('touchmove', (e) => {
+      if(!dragging || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - lastX;
+      const dy = e.touches[0].clientY - lastY;
+      tx += dx; ty += dy;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+      applyTransform();
+    }, {passive:true});
+
+    window.addEventListener('touchend', () => dragging = false);
+
+    // Wheel zoom
+    modalCanvas.addEventListener('wheel', (e) => {
+      if(!modal.classList.contains('open')) return;
+      e.preventDefault();
+      const delta = Math.sign(e.deltaY);
+      if(delta > 0) scale = Math.max(0.6, scale - 0.10);
+      else scale = Math.min(3.2, scale + 0.10);
+      applyTransform();
+    }, {passive:false});
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      if(!modal.classList.contains('open')) return;
+      if(e.key === 'Escape') closeModal();
+      if(e.key === '+' || e.key === '=') { scale = Math.min(3.2, scale + 0.15); applyTransform(); }
+      if(e.key === '-' || e.key === '_') { scale = Math.max(0.6, scale - 0.15); applyTransform(); }
+      if(e.key === '0') resetTransform();
+    });
+  </script>
+</body>
+</html>
