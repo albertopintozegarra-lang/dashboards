@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — Causas raíz, derivadas y efectos (Caso IDEO)</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --card:#ffffff;
+      --text:#0b1220;
+      --muted:#5b6474;
+      --line:#e7e9ee;
+      --pill:#f4f6fb;
+      --accent:#0b5cff;
+      --accent2:#11b5a4;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --shadow: 0 10px 30px rgba(11,18,32,.08);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:linear-gradient(180deg,#ffffff 0%, #fbfcff 45%, #ffffff 100%);
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:22px 16px 60px}
+    header{
+      display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+      gap:12px;margin-bottom:14px
+    }
+    h1{font-size:20px;margin:0;letter-spacing:.2px}
+    .subtitle{color:var(--muted);font-size:13px;line-height:1.4;margin-top:6px;max-width:780px}
+    .toolbar{
+      display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-end
+    }
+    .btn{
+      border:1px solid var(--line);background:var(--card);color:var(--text);
+      padding:10px 12px;border-radius:12px;cursor:pointer;
+      font-size:13px;display:inline-flex;gap:8px;align-items:center;
+      box-shadow: 0 6px 20px rgba(11,18,32,.05);
+      user-select:none
+    }
+    .btn:hover{border-color:#d9dbe3}
+    .btn.primary{border-color:transparent;background:var(--accent);color:white}
+    .btn.primary:hover{filter:brightness(.98)}
+    .btn.ghost{background:transparent;box-shadow:none}
+    .btn .dot{width:8px;height:8px;border-radius:50%;background:var(--accent2)}
+    .search{
+      flex:1 1 260px;min-width:220px;max-width:420px;
+      display:flex;align-items:center;gap:10px;
+      border:1px solid var(--line);border-radius:14px;background:var(--card);
+      padding:10px 12px; box-shadow: 0 6px 20px rgba(11,18,32,.04);
+    }
+    .search input{
+      border:none;outline:none;width:100%;
+      font-size:13px;color:var(--text);background:transparent
+    }
+    .grid{
+      display:grid;grid-template-columns: 1.1fr .9fr;gap:14px;margin-top:14px
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      header{align-items:flex-start}
+    }
+    .panel{
+      border:1px solid var(--line);border-radius:var(--radius);
+      background:var(--card);box-shadow:var(--shadow);
+      overflow:hidden
+    }
+    .panel-head{
+      padding:14px 14px 10px;border-bottom:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap
+    }
+    .panel-title{display:flex;flex-direction:column;gap:4px}
+    .panel-title b{font-size:14px}
+    .panel-title span{font-size:12px;color:var(--muted)}
+    .tabs{
+      display:flex;flex-wrap:wrap;gap:8px;
+      padding:10px 14px;border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg,#ffffff, #fbfcff);
+    }
+    .tab{
+      padding:8px 10px;border:1px solid var(--line);
+      border-radius:999px;background:var(--pill);
+      font-size:12px;color:var(--text);cursor:pointer;
+      display:flex;align-items:center;gap:8px
+    }
+    .tab[data-active="true"]{
+      background: rgba(11,92,255,.08);
+      border-color: rgba(11,92,255,.20);
+      color: #0b5cff;
+    }
+    .badge{
+      padding:2px 8px;border-radius:999px;font-size:11px;
+      background:#eef2ff;color:#3949ab;border:1px solid #e4e7ff;
+      font-family:var(--mono)
+    }
+    .content{padding:14px}
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:10px;
+    }
+    @media (max-width: 980px){ .cards{grid-template-columns:1fr} }
+    .card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+      background:linear-gradient(180deg,#ffffff,#fbfcff);
+    }
+    .card h3{margin:0 0 6px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+    .card p{margin:0;font-size:13px;line-height:1.35}
+    .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .pill{
+      font-size:12px;color:var(--text);
+      background:var(--pill);
+      border:1px solid var(--line);
+      padding:6px 10px;border-radius:999px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      font-size:13px;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:16px;
+    }
+    thead th{
+      text-align:left;
+      padding:10px 10px;
+      background:#f7f8fc;
+      border-bottom:1px solid var(--line);
+      color:#273047;
+      font-size:12px;
+      position:sticky; top:0; z-index:1;
+    }
+    tbody td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+      color:#0b1220;
+      line-height:1.35
+    }
+    tbody tr:last-child td{border-bottom:none}
+    .kpi-grid{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px
+    }
+    @media (max-width: 980px){ .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+    .kpi{
+      border:1px solid var(--line);
+      border-radius:16px;padding:12px;background:#ffffff;
+      box-shadow: 0 10px 30px rgba(11,18,32,.05);
+    }
+    .kpi b{display:block;font-size:18px}
+    .kpi span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+    .kpi small{
+      display:inline-flex;gap:8px;align-items:center;
+      margin-top:10px;font-size:12px;color:var(--muted)
+    }
+    .dot2{width:9px;height:9px;border-radius:50%}
+    .dot2.root{background:var(--danger)}
+    .dot2.driver{background:var(--warn)}
+    .dot2.effect{background:var(--accent2)}
+    .muted{color:var(--muted)}
+    .footer-note{margin-top:10px;font-size:12px;color:var(--muted)}
+    .split{
+      display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+      margin-top:10px
+    }
+    .toggle{
+      display:flex;gap:8px;align-items:center;flex-wrap:wrap
+    }
+    .seg{
+      border:1px solid var(--line);
+      border-radius:999px;
+      overflow:hidden;display:inline-flex;background:#fff
+    }
+    .seg button{
+      border:0;background:transparent;padding:8px 10px;cursor:pointer;font-size:12px
+    }
+    .seg button[data-on="true"]{background:rgba(11,92,255,.10);color:#0b5cff}
+    .tree{
+      display:grid;gap:10px
+    }
+    .tree .node{
+      border:1px dashed #d7dbe7;background:#fff;border-radius:16px;padding:12px
+    }
+    .node .hdr{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .node .hdr b{font-size:13px}
+    .node .hdr .tag{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:var(--pill);color:#2b3347}
+    .node ul{margin:10px 0 0 18px;padding:0}
+    .node li{margin:6px 0;color:#0b1220;font-size:13px;line-height:1.35}
+    .node li span{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Dashboard causal — Caso IDEO (enfoque Operaciones MBA)</h1>
+        <div class="subtitle">
+          Mapa de <b>causas raíz</b> → <b>causas derivadas</b> → <b>efectos finales</b> categorizado por: Procesos, Estrategia, Personas, Finanzas, Tecnología.
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="search" title="Filtra por texto (cualquier categoría/columna)">
+          <span class="muted" style="font-size:14px">🔎</span>
+          <input id="q" type="search" placeholder="Buscar (p.ej. “métricas”, “blueprint”, “TI”, “incentivos”)…" />
+        </div>
+        <button class="btn primary" id="btnExportAll"><span class="dot"></span>Exportar todo (CSV)</button>
+        <button class="btn" id="btnReset">Reiniciar filtros</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Matrix / Table panel -->
+      <section class="panel" id="panelMatrix">
+        <div class="panel-head">
+          <div class="panel-title">
+            <b>Matriz causal por categoría</b>
+            <span>Selecciona una categoría. Filtra por texto. Exporta la tabla actual.</span>
+          </div>
+          <div class="toggle">
+            <div class="seg" aria-label="modo de vista">
+              <button id="viewTable" data-on="true">Tabla</button>
+              <button id="viewTree" data-on="false">Árbol</button>
+            </div>
+            <button class="btn" id="btnExportCurrent">Exportar categoría (CSV)</button>
+          </div>
+        </div>
+
+        <div class="tabs" id="tabs"></div>
+
+        <div class="content">
+          <div id="tableView">
+            <div style="max-height: 420px; overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:34%">Causas raíz</th>
+                    <th style="width:33%">Causas derivadas</th>
+                    <th style="width:33%">Efectos finales</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+            <div class="split">
+              <div class="footer-note" id="countNote"></div>
+              <div class="footer-note">
+                Leyenda:
+                <span style="display:inline-flex;gap:8px;align-items:center;margin-left:8px"><span class="dot2 root"></span>Raíz</span>
+                <span style="display:inline-flex;gap:8px;align-items:center;margin-left:8px"><span class="dot2 driver"></span>Derivada</span>
+                <span style="display:inline-flex;gap:8px;align-items:center;margin-left:8px"><span class="dot2 effect"></span>Efecto</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="treeView" style="display:none">
+            <div class="tree" id="tree"></div>
+            <div class="footer-note">
+              Vista “Árbol” pensada para discusión: empieza por raíces, revisa drivers, termina en outcomes.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: KPI + Executive synthesis -->
+      <aside class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            <b>Síntesis ejecutiva</b>
+            <span>Lectura rápida para discusión en clase / comité directivo</span>
+          </div>
+          <button class="btn ghost" id="btnCopySummary" title="Copiar síntesis al portapapeles">📋 Copiar</button>
+        </div>
+
+        <div class="content">
+          <div class="kpi-grid" id="kpis"></div>
+
+          <div class="cards" style="margin-top:12px">
+            <div class="card">
+              <h3>Problema central</h3>
+              <p id="coreProblem">
+                Desacople entre el <b>sistema operativo vigente</b> (orientado a eficiencia/linealidad) y el
+                <b>sistema requerido</b> para sostener una experiencia centrada en el usuario (iteración, blueprint,
+                backstage habilitador, y métricas correctas por etapa).
+              </p>
+              <div class="pillrow">
+                <span class="pill">Innovación ≠ “proyecto lateral”</span>
+                <span class="pill">Operación de servicio (front/back)</span>
+                <span class="pill">Métricas por etapa</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Top 5 causas raíz transversales</h3>
+              <p class="muted" style="margin-bottom:8px">Las más determinantes para escala y consistencia</p>
+              <ol id="topRoots" style="margin:0;padding-left:18px;font-size:13px;line-height:1.35"></ol>
+            </div>
+
+            <div class="card">
+              <h3>Efectos finales típicos si no se corrige</h3>
+              <ul id="topEffects" style="margin:0;padding-left:18px;font-size:13px;line-height:1.35"></ul>
+            </div>
+          </div>
+
+          <div class="footer-note" style="margin-top:12px">
+            Tip: usa el filtro para aislar “métricas”, “blueprint”, “gobernanza”, “TI” o “incentivos”.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // ===== Dataset (puedes editar/expandir) =====
+    const DATA = [
+      {
+        category: "Procesos",
+        rows: [
+          {
+            root: "Innovación no integrada al proceso operativo (queda como ‘proyecto lateral’)",
+            drivers: [
+              "Prototipos sin ‘dueño’ operativo (accountability difusa)",
+              "Transición piloto→escala sin blueprint ni estándares de servicio",
+            ],
+            effects: [
+              "Cambios no escalan; quedan como pilotos aislados",
+              "Variabilidad de ejecución entre sedes/turnos",
+            ]
+          },
+          {
+            root: "Mentalidad lineal (plan cerrado) vs. aprendizaje iterativo",
+            drivers: [
+              "Se exige certeza temprana; se penaliza ‘volver atrás’",
+              "Decisiones se retrasan esperando ‘datos perfectos’",
+            ],
+            effects: [
+              "Fricción con el método; pérdida de velocidad y calidad de decisiones",
+              "Desgaste del equipo y pérdida de momentum",
+            ]
+          },
+          {
+            root: "Handoffs deficientes entre frontstage/backstage (servicio)",
+            drivers: [
+              "Cambios visibles (atención) sin soporte (RR.HH., layout, abastecimiento, TI)",
+              "Roles y excepciones no definidos; escalamiento de incidentes débil",
+            ],
+            effects: [
+              "Experiencia inconsistente; fallan ‘momentos de verdad’",
+              "Aumento de quejas y tiempos de resolución",
+            ]
+          },
+          {
+            root: "Métricas incorrectas para etapa de prototipo",
+            drivers: [
+              "Se evalúa con KPIs de operación madura (solo costo/tiempo)",
+              "No se mide aprendizaje ni consistencia percibida",
+            ],
+            effects: [
+              "Ideas valiosas se descartan prematuramente",
+              "Se prioriza eficiencia local sobre valor total",
+            ]
+          }
+        ]
+      },
+      {
+        category: "Estrategia",
+        rows: [
+          {
+            root: "Diferenciación por experiencia no se traduce a diseño del sistema operativo",
+            drivers: [
+              "No existe un ‘modelo de servicio’ objetivo (TO-BE) formalizado",
+              "Estándares de experiencia no se vuelven políticas/rituales operativos",
+            ],
+            effects: [
+              "La propuesta de valor se diluye; competidores copian rápido",
+              "Inconsistencia entre promesa de marca y entrega real",
+            ]
+          },
+          {
+            root: "Ambigüedad sobre el nivel de cambio (incremental vs. transformacional)",
+            drivers: [
+              "Stakeholders creen que basta ‘ajustar algunas cosas’",
+              "No se explicita el impacto organizacional (RR.HH., TI, layout, governance)",
+            ],
+            effects: [
+              "Shock cuando aparece el costo/cambio real; freno a la ejecución",
+              "Implementación parcial y resultados mediocres",
+            ]
+          },
+          {
+            root: "Gobernanza débil para trade-offs (experiencia vs capacidad vs costo)",
+            drivers: [
+              "Decisiones se politizan; múltiples criterios no jerarquizados",
+              "No hay portafolio priorizado por valor/viabilidad",
+            ],
+            effects: [
+              "Priorización errática; iniciativas inconexas",
+              "Re-trabajo y pérdida de confianza interna",
+            ]
+          }
+        ]
+      },
+      {
+        category: "Personas",
+        rows: [
+          {
+            root: "Brecha cultural (analítico/planificado vs iterativo/aprendizaje)",
+            drivers: [
+              "Resistencia (‘no es medible’, ‘volver atrás = perder tiempo’)",
+              "Patrocinio directivo intermitente; señales mixtas",
+            ],
+            effects: [
+              "Baja adopción; sabotaje pasivo o ‘compliance’ superficial",
+              "Conflictos entre áreas (innovación vs operación)",
+            ]
+          },
+          {
+            root: "Capacidades insuficientes para operar el nuevo servicio",
+            drivers: [
+              "Falta de entrenamiento en guiones, criterios y autonomía",
+              "Supervisión orientada a control, no coaching",
+            ],
+            effects: [
+              "Alta variabilidad; errores en interacción; mala experiencia",
+              "Aumento de reclamos y desgaste del personal",
+            ]
+          },
+          {
+            root: "Incentivos desalineados",
+            drivers: [
+              "Se premia velocidad/colas por sobre resolución/experiencia",
+              "Ventas accesorias (upsell) se empujan sin criterios de valor",
+            ],
+            effects: [
+              "Atención fría o forzada; pérdida de confianza",
+              "Erosión de la lealtad del cliente",
+            ]
+          }
+        ]
+      },
+      {
+        category: "Finanzas",
+        rows: [
+          {
+            root: "Caso económico incompleto (beneficios de experiencia no aterrizados)",
+            drivers: [
+              "No se mide LTV, repetición, premium willingness-to-pay",
+              "ROI se juzga por ventas de corto plazo del piloto",
+            ],
+            effects: [
+              "Recortes por ‘costo’; inversión intermitente",
+              "Retorno real subcapturado por mala medición",
+            ]
+          },
+          {
+            root: "Costos incrementales no gestionados por olas/piloto",
+            drivers: [
+              "Se intenta implementar ‘todo a la vez’",
+              "Sin costeo por actividades (ABC) para separar valor vs desperdicio",
+            ],
+            effects: [
+              "Sobrecostos; fatiga organizacional; abandono del programa",
+              "Ineficiencias persistentes y conflictos internos",
+            ]
+          }
+        ]
+      },
+      {
+        category: "Tecnología",
+        rows: [
+          {
+            root: "TI/datos no habilitan la nueva experiencia (feedback loop débil)",
+            drivers: [
+              "Sin trazabilidad de fricciones ni analítica de recorrido (journey)",
+              "Canales no integrados (taquilla/app/kiosko/atención)",
+            ],
+            effects: [
+              "Experiencia ‘bonita’ pero inconsistente y difícil de mejorar",
+              "Repetición de pasos; abandono de compra; reputación digital baja",
+            ]
+          }
+        ]
+      }
+    ];
+
+    // ===== State =====
+    let state = {
+      category: DATA[0].category,
+      q: "",
+      view: "table" // table | tree
+    };
+
+    // ===== Helpers =====
+    const $ = (id) => document.getElementById(id);
+
+    function normalize(s){
+      return (s || "")
+        .toString()
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function flattenRows(){
+      // For KPI counts
+      const flat = [];
+      for (const cat of DATA){
+        for (const r of cat.rows){
+          flat.push({
+            category: cat.category,
+            root: r.root,
+            drivers: r.drivers,
+            effects: r.effects
+          });
+        }
+      }
+      return flat;
+    }
+
+    function currentCategoryObj(){
+      return DATA.find(d => d.category === state.category) || DATA[0];
+    }
+
+    function filterRows(rows){
+      const nq = normalize(state.q);
+      if (!nq) return rows;
+
+      return rows.filter(r => {
+        const hay = [
+          r.root,
+          ...(r.drivers || []),
+          ...(r.effects || [])
+        ].join(" | ");
+        return normalize(hay).includes(nq);
+      });
+    }
+
+    function escapeCsvCell(v){
+      const s = (v ?? "").toString().replace(/\r?\n/g, " ");
+      const needs = /[",;]/.test(s);
+      return needs ? `"${s.replace(/"/g,'""')}"` : s;
+    }
+
+    function downloadCsv(filename, rows){
+      const header = ["Categoria","Causas Raiz","Causas Derivadas","Efectos Finales"];
+      const lines = [header.join(",")];
+
+      for (const r of rows){
+        lines.push([
+          escapeCsvCell(r.category),
+          escapeCsvCell(r.root),
+          escapeCsvCell((r.drivers||[]).join(" • ")),
+          escapeCsvCell((r.effects||[]).join(" • "))
+        ].join(","));
+      }
+      const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // ===== Render =====
+    function renderTabs(){
+      const tabs = $("tabs");
+      tabs.innerHTML = "";
+      for (const cat of DATA){
+        const count = cat.rows.length;
+        const b = document.createElement("button");
+        b.className = "tab";
+        b.dataset.active = (cat.category === state.category).toString();
+        b.innerHTML = `<span>${cat.category}</span><span class="badge">${count}</span>`;
+        b.onclick = () => { state.category = cat.category; renderAll(); };
+        tabs.appendChild(b);
+      }
+    }
+
+    function renderTable(){
+      const cat = currentCategoryObj();
+      const rows = filterRows(cat.rows);
+      const tbody = $("tbody");
+      tbody.innerHTML = "";
+
+      for (const r of rows){
+        const tr = document.createElement("tr");
+        const tdRoot = document.createElement("td");
+        const tdDrv  = document.createElement("td");
+        const tdEff  = document.createElement("td");
+
+        tdRoot.innerHTML = `<div style="display:flex;gap:10px;align-items:flex-start">
+          <span class="dot2 root" style="margin-top:6px"></span>
+          <div>${highlight(r.root)}</div>
+        </div>`;
+
+        tdDrv.innerHTML = `<div style="display:flex;gap:10px;align-items:flex-start">
+          <span class="dot2 driver" style="margin-top:6px"></span>
+          <div>${(r.drivers||[]).map(d => "• " + highlight(d)).join("<br>")}</div>
+        </div>`;
+
+        tdEff.innerHTML = `<div style="display:flex;gap:10px;align-items:flex-start">
+          <span class="dot2 effect" style="margin-top:6px"></span>
+          <div>${(r.effects||[]).map(e => "• " + highlight(e)).join("<br>")}</div>
+        </div>`;
+
+        tr.appendChild(tdRoot); tr.appendChild(tdDrv); tr.appendChild(tdEff);
+        tbody.appendChild(tr);
+      }
+
+      $("countNote").textContent = `Mostrando ${rows.length} de ${cat.rows.length} fila(s) en “${cat.category}”.`;
+    }
+
+    function highlight(text){
+      const q = state.q.trim();
+      if (!q) return escapeHtml(text);
+      const nq = normalize(q);
+      const t = text.toString();
+      const nt = normalize(t);
+
+      // simple highlight: find first occurrence index on normalized; then map back approximately by using original substring match if possible
+      const idx = nt.indexOf(nq);
+      if (idx < 0) return escapeHtml(t);
+
+      // Try to locate using case-insensitive match on original
+      const re = new RegExp(escapeRegex(q), "ig");
+      return escapeHtml(t).replace(re, (m)=>`<mark style="background:rgba(17,181,164,.18);padding:0 2px;border-radius:4px">${escapeHtml(m)}</mark>`);
+    }
+
+    function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+    function escapeHtml(s){
+      return (s ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function renderTree(){
+      const cat = currentCategoryObj();
+      const rows = filterRows(cat.rows);
+      const tree = $("tree");
+      tree.innerHTML = "";
+
+      for (const r of rows){
+        const node = document.createElement("div");
+        node.className = "node";
+        node.innerHTML = `
+          <div class="hdr">
+            <b><span style="color:#ef4444">●</span> ${highlight(r.root)}</b>
+            <span class="tag">${cat.category}</span>
+          </div>
+          <ul>
+            ${(r.drivers||[]).map(d => `<li><b style="color:#f59e0b">Derivada:</b> ${highlight(d)}</li>`).join("")}
+            ${(r.effects||[]).map(e => `<li><b style="color:#11b5a4">Efecto:</b> ${highlight(e)}</li>`).join("")}
+          </ul>
+        `;
+        tree.appendChild(node);
+      }
+    }
+
+    function renderKPIs(){
+      const flat = flattenRows();
+      const totalRoots = flat.length;
+      const totalDrivers = flat.reduce((a,r)=>a + (r.drivers?.length||0), 0);
+      const totalEffects = flat.reduce((a,r)=>a + (r.effects?.length||0), 0);
+      const cats = DATA.length;
+
+      const kpis = [
+        {value: totalRoots, label:"Causas raíz (total)", dot:"root"},
+        {value: totalDrivers, label:"Causas derivadas (total)", dot:"driver"},
+        {value: totalEffects, label:"Efectos finales (total)", dot:"effect"},
+        {value: cats, label:"Categorías", dot:null}
+      ];
+
+      const el = $("kpis");
+      el.innerHTML = "";
+      for (const k of kpis){
+        const div = document.createElement("div");
+        div.className = "kpi";
+        div.innerHTML = `
+          <b>${k.value}</b>
+          <span>${k.label}</span>
+          <small>
+            ${k.dot ? `<span class="dot2 ${k.dot}"></span>` : `<span class="dot2" style="background:#94a3b8"></span>`}
+            <span class="muted">${k.dot ? "Contabilización por elementos" : "Vista por dimensiones"}</span>
+          </small>
+        `;
+        el.appendChild(div);
+      }
+
+      // Top roots/effects (curated from the narrative)
+      const topRoots = [
+        "Gobernanza débil para trade-offs (experiencia vs capacidad vs costo).",
+        "Métricas incorrectas para etapa de prototipo (solo eficiencia).",
+        "Innovación no integrada al ‘día a día’ (sin dueño operativo / blueprint).",
+        "Brecha cultural y de capacidades (entrenamiento, coaching, adopción).",
+        "Backstage/TI no habilita frontstage (integración y feedback loop)."
+      ];
+      const topEffects = [
+        "Pilotos ‘bonitos’ que no escalan.",
+        "Experiencia inconsistente → quejas → pérdida de fidelidad.",
+        "Parálisis decisional por conflicto innovación/operación.",
+        "ROI percibido bajo (mala medición) → recorte → vuelta al status quo.",
+        "Reputación digital y conversión afectadas por fricciones."
+      ];
+      $("topRoots").innerHTML = topRoots.map(x=>`<li>${escapeHtml(x)}</li>`).join("");
+      $("topEffects").innerHTML = topEffects.map(x=>`<li>${escapeHtml(x)}</li>`).join("");
+    }
+
+    function setView(mode){
+      state.view = mode;
+      $("viewTable").dataset.on = (mode==="table").toString();
+      $("viewTree").dataset.on  = (mode==="tree").toString();
+      $("tableView").style.display = (mode==="table") ? "block" : "none";
+      $("treeView").style.display  = (mode==="tree") ? "block" : "none";
+    }
+
+    function renderAll(){
+      renderTabs();
+      renderTable();
+      renderTree();
+      renderKPIs();
+    }
+
+    // ===== Events =====
+    $("q").addEventListener("input", (e)=>{
+      state.q = e.target.value || "";
+      // Keep view, just refresh lists
+      renderTable();
+      renderTree();
+    });
+
+    $("btnReset").onclick = () => {
+      state.q = "";
+      $("q").value = "";
+      state.category = DATA[0].category;
+      setView("table");
+      renderAll();
+    };
+
+    $("viewTable").onclick = ()=>{ setView("table"); };
+    $("viewTree").onclick  = ()=>{ setView("tree"); };
+
+    $("btnExportCurrent").onclick = ()=>{
+      const cat = currentCategoryObj();
+      const filtered = filterRows(cat.rows).map(r=>({
+        category: cat.category,
+        root: r.root,
+        drivers: r.drivers,
+        effects: r.effects
+      }));
+      downloadCsv(`IDEO_causal_${cat.category}.csv`, filtered);
+    };
+
+    $("btnExportAll").onclick = ()=>{
+      const flat = flattenRows().map(r=>({
+        category: r.category,
+        root: r.root,
+        drivers: r.drivers,
+        effects: r.effects
+      }));
+      downloadCsv("IDEO_causal_todo.csv", flat);
+    };
+
+    $("btnCopySummary").onclick = async ()=>{
+      const text = [
+        "Síntesis — Caso IDEO (Operaciones MBA)",
+        "",
+        "Problema central: Desacople entre el sistema operativo vigente (eficiencia/linealidad) y el sistema requerido para sostener experiencia centrada en usuario (iteración, blueprint, backstage habilitador, métricas por etapa).",
+        "",
+        "Top 5 causas raíz:",
+        "1) Gobernanza débil para trade-offs.",
+        "2) Métricas incorrectas para prototipo (solo eficiencia).",
+        "3) Innovación no integrada al día a día (sin dueño/blueprint).",
+        "4) Brecha cultural y de capacidades (adopción/entrenamiento).",
+        "5) Backstage/TI no habilita frontstage (integración/feedback loop).",
+        "",
+        "Efectos si no se corrige:",
+        "- Pilotos que no escalan.",
+        "- Experiencia inconsistente y pérdida de fidelidad.",
+        "- Parálisis por conflicto innovación/operación.",
+        "- ROI percibido bajo y recorte.",
+        "- Reputación digital y conversión afectadas."
+      ].join("\n");
+
+      try{
+        await navigator.clipboard.writeText(text);
+        alert("Síntesis copiada.");
+      }catch(_){
+        // Fallback
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        alert("Síntesis copiada (modo compatibilidad).");
+      }
+    };
+
+    // Init
+    renderAll();
+  </script>
+</body>
+</html>
