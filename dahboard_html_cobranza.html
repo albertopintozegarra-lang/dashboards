@@ -1,0 +1,1220 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BBVA ↔ Rímac | Dashboard Cobranza - Diferencias diarias</title>
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --surface:#ffffff;
+      --text:#0b1f3b;
+      --muted:#66758c;
+      --line:#e6ebf2;
+
+      /* BBVA-ish */
+      --bbva:#004481;
+      --bbva-2:#0066a1;
+      --teal:#00a6a6;
+
+      --good:#2e9b4f;
+      --warn:#f0a000;
+      --bad:#d64545;
+
+      --chip:#f1f5fb;
+      --shadow: 0 8px 20px rgba(12,35,64,.08);
+      --radius: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--text)}
+    header{
+      background: linear-gradient(90deg, var(--bbva) 0%, var(--bbva-2) 60%, var(--teal) 140%);
+      color:#fff;padding:16px 18px;position:sticky;top:0;z-index:10;
+      box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:0 18px 28px}
+    .topRow{max-width:1100px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    h1{font-size:16px;margin:0 0 4px;font-weight:800;letter-spacing:.2px}
+    .subtitle{margin:0;color:rgba(255,255,255,.85);font-size:12.5px;max-width:760px}
+    .pill{
+      display:inline-flex;gap:10px;align-items:center;
+      padding:10px 12px;border-radius:999px;
+      background: rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.22);
+      backdrop-filter: blur(6px);
+      font-size:12px;white-space:nowrap
+    }
+    .pill strong{font-weight:900}
+    .badge{
+      font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);
+      background:#fff;color: var(--bbva);font-weight:800;
+    }
+
+    .section{margin-top:16px}
+    .card{
+      background: var(--surface);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .cardHeader{
+      padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+    .cardHeader h2{font-size:13px;margin:0;font-weight:900;color:var(--bbva)}
+    .cardBody{padding:14px 16px}
+    .small{font-size:12px;color:var(--muted)}
+    .mono{font-family:var(--mono)}
+    .stack{display:flex;flex-direction:column;gap:16px}
+
+    /* Controls */
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 840px){ .controls{grid-template-columns:1fr} }
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    input, select{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    input:focus, select:focus{border-color: rgba(0,68,129,.35); box-shadow:0 0 0 3px rgba(0,68,129,.10)}
+    .btnRow{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:10px}
+    button{
+      border:1px solid var(--line);
+      background:#fff;
+      color: var(--bbva);
+      padding:10px 12px;border-radius:12px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:12.5px; /* evita botones gigantes */
+    }
+    button.primary{
+      background: rgba(0,68,129,.10);
+      border-color: rgba(0,68,129,.25);
+    }
+    button:hover{filter:brightness(0.98)}
+
+    /* KPIs */
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 900px){ .kpis{grid-template-columns: repeat(2, 1fr)} }
+    .kpi{
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+    }
+    .kpi .label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:10px}
+    .kpi .value{margin-top:6px;font-size:18px;font-weight:950;color:var(--text)}
+    .kpi .delta{margin-top:4px;font-size:12px;color:var(--muted)}
+
+    /* Chips / severity */
+    .chip{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:5px 10px;border-radius:999px;
+      background: var(--chip);
+      border:1px solid var(--line);
+      color: var(--muted);
+      font-size:11px;
+      white-space:nowrap;
+      font-weight:800;
+    }
+    .dot{width:8px;height:8px;border-radius:50%}
+    .dot.good{background:var(--good)}
+    .dot.warn{background:var(--warn)}
+    .dot.bad{background:var(--bad)}
+    .sevText.good{color:var(--good)}
+    .sevText.warn{color:var(--warn)}
+    .sevText.bad{color:var(--bad)}
+
+    /* Table */
+    .tableWrap{
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow:hidden;
+      background:#fff;
+    }
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th,td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{
+      text-align:left;background:#fbfcff;color:var(--bbva);
+      font-size:12px;font-weight:950;
+      position:sticky;top:0;z-index:1;
+    }
+    tr:hover td{background:#fbfdff}
+    .rowTools{
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;margin-top:8px;
+    }
+    .leftTools,.rightTools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .countPill{
+      display:inline-flex;gap:8px;align-items:center;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;font-size:12px;color:var(--muted);font-weight:900;
+    }
+    .linkBtn{
+      border:none;background:transparent;color:var(--bbva-2);cursor:pointer;
+      font-weight:950;padding:0;font-size:12px;
+    }
+    .linkBtn:hover{text-decoration:underline}
+    .muted{color:var(--muted)}
+
+    /* Checkbox */
+    .chk{width:16px;height:16px}
+
+    /* Dropdown menu (discreto) */
+    .menuWrap{position:relative;display:inline-block}
+    .menuBtn{
+      border:1px solid var(--line);
+      background:#fff;color:var(--bbva);
+      padding:10px 12px;border-radius:12px;
+      cursor:pointer;font-weight:950;font-size:12.5px;
+    }
+    .menu{
+      position:absolute;right:0;top:44px;
+      width:240px;background:#fff;border:1px solid var(--line);
+      border-radius:14px;box-shadow: var(--shadow);
+      padding:8px;display:none;z-index:20;
+    }
+    .menu.open{display:block}
+    .menuItem{
+      width:100%;
+      text-align:left;
+      padding:10px 10px;border-radius:12px;
+      border:1px solid transparent;
+      background:#fff;
+      cursor:pointer;
+      font-weight:900;font-size:12.5px;
+      color:var(--text);
+    }
+    .menuItem:hover{background:#f6f9ff;border-color:#e7eefc}
+    .menuItem.danger{color:#9f1e1e}
+    .menuHint{padding:8px 10px;font-size:11.5px;color:var(--muted)}
+
+    /* Charts section */
+    .chartsGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 900px){ .chartsGrid{grid-template-columns:1fr} }
+    .chartBox{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      padding:10px;
+    }
+    .chartTitle{display:flex;justify-content:space-between;align-items:center;margin:0 0 8px}
+    .chartTitle strong{font-size:12.5px;color:var(--bbva);font-weight:950}
+    .chartTitle span{font-size:12px;color:var(--muted);font-weight:800}
+    canvas{width:100%;height:210px}
+
+    /* Drawer / modal */
+    .drawerOverlay{
+      position:fixed;inset:0;background:rgba(11,31,59,.35);
+      display:none;z-index:50;
+    }
+    .drawerOverlay.open{display:block}
+    .drawer{
+      position:fixed;right:0;top:0;height:100%;width:380px;max-width:92vw;
+      background:#fff;border-left:1px solid var(--line);
+      box-shadow: 0 12px 30px rgba(0,0,0,.18);
+      transform: translateX(100%);
+      transition: transform .2s ease;
+      z-index:60;
+      display:flex;flex-direction:column;
+    }
+    .drawer.open{transform: translateX(0)}
+    .drawerHeader{
+      padding:14px 16px;border-bottom:1px solid var(--line);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+    }
+    .drawerHeader strong{color:var(--bbva);font-weight:950;font-size:13px}
+    .drawerBody{padding:14px 16px;overflow:auto}
+    .kv{display:grid;grid-template-columns: 120px 1fr;gap:10px;margin:10px 0;font-size:12.5px}
+    .kv div:nth-child(odd){color:var(--muted);font-weight:900}
+    .toast{
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+      background:#fff;border:1px solid var(--line);border-radius:999px;
+      padding:10px 12px;box-shadow:var(--shadow);
+      display:none;z-index:80;font-size:12.5px;font-weight:900;color:var(--bbva);
+    }
+    .toast.show{display:block}
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="topRow">
+    <div>
+      <h1>Dashboard Cobranza BBVA ↔ Rímac — Diferencias diarias</h1>
+      <p class="subtitle">
+        Foto diaria de diferencias (recibos a cobrar). Mitiga riesgo operativo del flujo de cobranza comparando “BBVA esperado” vs “Rímac solicitado”.
+      </p>
+    </div>
+    <div class="pill">
+      <span>Rango:</span>
+      <strong id="rangeLabel">—</strong>
+      <span class="badge" id="procStatus">OK</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stack">
+
+    <!-- 1) Filtros -->
+    <section class="section card">
+      <div class="cardHeader">
+        <h2>Filtros (seguimiento por fechas)</h2>
+        <div class="small">Selecciona rango y aplica filtros por producto / tipo / severidad</div>
+      </div>
+      <div class="cardBody">
+        <div class="controls">
+          <div>
+            <label>Desde</label>
+            <input type="date" id="fFrom" />
+          </div>
+          <div>
+            <label>Hasta</label>
+            <input type="date" id="fTo" />
+          </div>
+          <div>
+            <label>Buscar (recibo / póliza / cliente)</label>
+            <input id="fSearch" placeholder="Ej: RCB-000123, POL-7788, DNI..." />
+          </div>
+
+          <div>
+            <label>Producto</label>
+            <select id="fProduct"><option value="">Todos</option></select>
+          </div>
+          <div>
+            <label>Tipo diferencia</label>
+            <select id="fType"><option value="">Todos</option></select>
+          </div>
+          <div>
+            <label>Severidad</label>
+            <select id="fSev">
+              <option value="">Todas</option>
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Info">Info</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btnRow">
+          <button id="btnQuick7">Últimos 7 días</button>
+          <button id="btnQuick30">Últimos 30 días</button>
+          <button id="btnClear">Limpiar</button>
+          <button class="primary" id="btnApply">Aplicar</button>
+          <button class="primary" id="btnExport">Exportar CSV</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2) KPIs -->
+    <section class="section card">
+      <div class="cardHeader">
+        <h2>KPIs del control (contexto + rango)</h2>
+        <div class="small">Stock estimado 400,000 pólizas · ratio error 1.2% ⇒ ~4,800 pólizas con potencial inconsistencia</div>
+      </div>
+      <div class="cardBody">
+        <div class="kpis" id="kpiGrid"></div>
+      </div>
+    </section>
+
+    <!-- 3) Gráficos (sección específica) -->
+    <section class="section card">
+      <div class="cardHeader">
+        <h2>Gráficos (rango activo)</h2>
+        <div class="small">Se actualizan con tus filtros y excluyen casos “Resueltos”</div>
+      </div>
+      <div class="cardBody">
+        <div class="chartsGrid">
+          <div class="chartBox">
+            <p class="chartTitle"><strong>Casos por severidad</strong><span id="sevSummary">—</span></p>
+            <canvas id="chartSeverity" width="800" height="420"></canvas>
+          </div>
+          <div class="chartBox">
+            <p class="chartTitle"><strong>Impacto (Σ |Δ|) por producto</strong><span id="prodSummary">—</span></p>
+            <canvas id="chartImpactProduct" width="800" height="420"></canvas>
+          </div>
+          <div class="chartBox">
+            <p class="chartTitle"><strong>Casos por tipo de diferencia (Top 6)</strong><span id="typeSummary">—</span></p>
+            <canvas id="chartType" width="800" height="420"></canvas>
+          </div>
+          <div class="chartBox">
+            <p class="chartTitle"><strong>Tendencia diaria (casos)</strong><span id="trendSummary">—</span></p>
+            <canvas id="chartTrend" width="800" height="420"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4) Tabla -->
+    <section class="section card">
+      <div class="cardHeader">
+        <h2>Casos del dashboard (pendientes)</h2>
+        <div class="small">Marcar como “Resuelto” para retirarlos del tablero (individual o masivo)</div>
+      </div>
+      <div class="cardBody">
+
+        <div class="rowTools">
+          <div class="leftTools">
+            <span class="countPill"><span id="caseCount">0</span> casos visibles</span>
+            <span class="countPill"><span id="openCount">0</span> abiertos</span>
+            <span class="countPill">Impacto visible: <span id="impactVisible" class="mono">S/ 0.00</span></span>
+          </div>
+
+          <div class="rightTools">
+            <label style="margin:0">
+              <span class="muted" style="font-size:12px;font-weight:900;margin-right:6px">Mostrar</span>
+              <select id="pageSize" style="width:auto;display:inline-block;padding:8px 10px;border-radius:999px;font-size:12px">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <span class="muted" style="font-size:12px;font-weight:900;margin-left:6px">registros</span>
+            </label>
+
+            <button class="primary" id="btnResolveSelected">Marcar seleccionados como Resuelto</button>
+
+            <div class="menuWrap">
+              <button class="menuBtn" id="menuBtn">Opciones ▾</button>
+              <div class="menu" id="menu">
+                <div class="menuHint">Acciones masivas (discretas)</div>
+                <button class="menuItem danger" id="btnResolveAll">Marcar TODOS como Resuelto</button>
+                <button class="menuItem" id="btnUndoLast">Deshacer último “Resuelto”</button>
+                <button class="menuItem" id="btnClearResolved">Reiniciar (mostrar todo)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tableWrap" style="margin-top:10px;max-height:520px;overflow:auto">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:34px"><input type="checkbox" id="chkAll" class="chk" title="Seleccionar todo (página)" /></th>
+                <th>Fecha</th>
+                <th>Recibo ID</th>
+                <th>Póliza</th>
+                <th>Cliente</th>
+                <th>Producto</th>
+                <th>Tipo diferencia</th>
+                <th>BBVA (S/)</th>
+                <th>Rímac (S/)</th>
+                <th>Δ (S/)</th>
+                <th>Severidad</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="diffTable"></tbody>
+          </table>
+        </div>
+
+        <div class="rowTools" style="margin-top:10px">
+          <div class="leftTools">
+            <button class="linkBtn" id="prevPage">← Anterior</button>
+            <span class="muted" style="font-size:12px;font-weight:900">
+              Página <span id="pageNow" class="mono">1</span> / <span id="pageMax" class="mono">1</span>
+            </span>
+            <button class="linkBtn" id="nextPage">Siguiente →</button>
+          </div>
+          <div class="rightTools">
+            <span class="muted" style="font-size:12px">Tip: clic en una fila para ver detalle.</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Drawer (detalle) -->
+<div class="drawerOverlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawerHeader">
+    <strong>Detalle del caso</strong>
+    <button class="linkBtn" id="drawerClose">Cerrar ✕</button>
+  </div>
+  <div class="drawerBody" id="drawerBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* =========================================================
+     1) SUPUESTOS DE CONTEXTO
+     ========================================================= */
+  const STOCK_POLIZAS = 400000;
+  const ERROR_RATIO = 0.012;
+  const POTENCIAL_INCONSISTENCIAS = Math.round(STOCK_POLIZAS * ERROR_RATIO);
+
+  /* =========================================================
+     2) MOCK DATA (más grande) — genera ~240 registros
+     ========================================================= */
+  const PRODUCTS = ["Vehicular","Vida","Hogar","Salud","Accidentes"];
+  const TYPES = [
+    "Monto distinto",
+    "Pedido por Rímac sin respaldo BBVA",
+    "Falta pedido de Rímac (BBVA lo espera)",
+    "Duplicado en pedido de Rímac",
+    "Diferencia menor (redondeo)",
+    "Fecha de vencimiento distinta"
+  ];
+  const STATES = ["Abierto","En análisis","Derivado a Rímac"];
+
+  const typeSeverity = {
+    "Pedido por Rímac sin respaldo BBVA": "Alta",
+    "Duplicado en pedido de Rímac": "Alta",
+    "Monto distinto": "Media",
+    "Falta pedido de Rímac (BBVA lo espera)": "Media",
+    "Fecha de vencimiento distinta": "Media",
+    "Diferencia menor (redondeo)": "Info",
+  };
+  const typeAction = {
+    "Pedido por Rímac sin respaldo BBVA": "Bloquear cobro; validar póliza/cupón en BBVA",
+    "Duplicado en pedido de Rímac": "Evitar doble cobro; solicitar depuración a Rímac",
+    "Monto distinto": "Validar monto correcto; pedir ajuste / endoso si aplica",
+    "Falta pedido de Rímac (BBVA lo espera)": "Solicitar inclusión del recibo en lista del día",
+    "Fecha de vencimiento distinta": "Validar vigencia/cupón; coordinar corrección",
+    "Diferencia menor (redondeo)": "Aplicar tolerancia; monitorear recurrencia"
+  };
+
+  // PRNG determinístico para reproducibilidad
+  function mulberry32(a){return function(){let t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296}}
+  const rnd = mulberry32(56115);
+
+  function pad(n,len){return String(n).padStart(len,"0")}
+  function randomFrom(arr){ return arr[Math.floor(rnd()*arr.length)] }
+  function randInt(min,max){ return Math.floor(rnd()*(max-min+1))+min }
+  function randMoney(min,max){ return Math.round((min + rnd()*(max-min))*100)/100 }
+
+  function dateAddDays(iso,days){
+    const d = new Date(iso+"T00:00:00");
+    d.setDate(d.getDate()+days);
+    return d.toISOString().slice(0,10);
+  }
+
+  // Genera casos entre 2026-01-15 y 2026-02-13 (30 días)
+  const START = "2026-01-15";
+  const DAYS = 30;
+  const TOTAL = 240;
+
+  const seedDiffs = [];
+  for(let i=1;i<=TOTAL;i++){
+    const day = dateAddDays(START, randInt(0, DAYS-1));
+    const product = randomFrom(PRODUCTS);
+    const type = randomFrom(TYPES);
+    const sev = typeSeverity[type] || "Info";
+    const state = randomFrom(STATES);
+
+    // Montos: forzar coherencia con tipo
+    let bbva=0, rimac=0;
+
+    if (type === "Pedido por Rímac sin respaldo BBVA"){
+      bbva = 0;
+      rimac = randMoney(20, 450);
+    } else if (type === "Falta pedido de Rímac (BBVA lo espera)"){
+      bbva = randMoney(20, 450);
+      rimac = 0;
+    } else if (type === "Duplicado en pedido de Rímac"){
+      bbva = randMoney(40, 500);
+      rimac = bbva * 2;
+    } else if (type === "Diferencia menor (redondeo)"){
+      bbva = randMoney(20, 450);
+      rimac = Math.round((bbva + (rnd() < 0.5 ? 0.1 : -0.1))*100)/100;
+    } else {
+      // Monto distinto / Fecha distinta: pequeño a mediano
+      bbva = randMoney(20, 600);
+      const diff = sev === "Media" ? randMoney(-120, 120) : randMoney(-5, 5);
+      rimac = Math.max(0, Math.round((bbva - diff)*100)/100);
+    }
+
+    seedDiffs.push({
+      fecha: day,
+      recibo_id: `RCB-${pad(i,6)}`,
+      poliza: `POL-${pad(randInt(100000, 999999),6)}`,
+      cliente: `DNI ${pad(randInt(10000000, 79999999),8).slice(0,2)}******`,
+      producto: product,
+      tipo: type,
+      bbva,
+      rimac,
+      severidad: sev,
+      estado: state,
+      accion: typeAction[type] || "Revisar caso",
+      // un par de campos extra para “detalle”
+      canal: rnd()<0.55 ? "Oficina" : "Digital",
+      origen: rnd()<0.5 ? "BBVA" : "Rímac",
+      lote: `L${day.replaceAll("-","")}-${pad(randInt(1,9),2)}`
+    });
+  }
+
+  /* =========================================================
+     3) STATE + localStorage (resueltos)
+     ========================================================= */
+  const LS_KEY = "bbva_rimac_resueltos_v2";
+  const LS_UNDO = "bbva_rimac_undo_v2";
+  function getResolvedSet(){
+    try{ return new Set(JSON.parse(localStorage.getItem(LS_KEY) || "[]")); }
+    catch{ return new Set(); }
+  }
+  function setResolvedSet(set){ localStorage.setItem(LS_KEY, JSON.stringify([...set])); }
+  function pushUndo(ids){
+    localStorage.setItem(LS_UNDO, JSON.stringify(ids));
+  }
+  function popUndo(){
+    try{ return JSON.parse(localStorage.getItem(LS_UNDO) || "[]"); }catch{ return []; }
+  }
+  function clearUndo(){ localStorage.removeItem(LS_UNDO); }
+
+  const state = {
+    from: "2026-02-13",
+    to: "2026-02-13",
+    search:"",
+    product:"",
+    type:"",
+    sev:"",
+    page: 1,
+    pageSize: 20
+  };
+
+  /* =========================================================
+     4) HELPERS
+     ========================================================= */
+  const fmtMoney = (n) => (n || 0).toLocaleString("es-PE", { style:"currency", currency:"PEN" });
+  const fmtNum = (n) => (n || 0).toLocaleString("es-PE");
+  function delta(row){ return (row.bbva || 0) - (row.rimac || 0); }
+  function impactAbs(row){ return Math.abs(delta(row)); }
+  function sevClass(sev){ return sev==="Alta" ? "bad" : sev==="Media" ? "warn" : "good"; }
+  function inRange(dateStr, from, to){ return dateStr >= from && dateStr <= to; }
+
+  function getAllRows(){
+    const resolved = getResolvedSet();
+    return seedDiffs.map(r => ({
+      ...r,
+      delta: delta(r),
+      impacto: impactAbs(r),
+      isResolved: resolved.has(r.recibo_id)
+    }));
+  }
+
+  function applyFilters(rows){
+    return rows
+      .filter(r => !r.isResolved) // dashboard muestra pendientes
+      .filter(r => inRange(r.fecha, state.from, state.to))
+      .filter(r => state.product ? r.producto === state.product : true)
+      .filter(r => state.type ? r.tipo === state.type : true)
+      .filter(r => state.sev ? r.severidad === state.sev : true)
+      .filter(r => {
+        if (!state.search) return true;
+        const s = state.search.toLowerCase();
+        const hay = (r.fecha+" "+r.recibo_id+" "+r.poliza+" "+r.cliente+" "+r.producto+" "+r.tipo+" "+r.estado).toLowerCase();
+        return hay.includes(s);
+      });
+  }
+
+  function setRangeLabel(){
+    const label = (state.from === state.to) ? state.from : `${state.from} → ${state.to}`;
+    document.getElementById("rangeLabel").textContent = label;
+  }
+
+  /* =========================================================
+     5) KPI RENDER
+     ========================================================= */
+  function renderKPIs(visibleRows){
+    const abiertos = visibleRows.filter(r => r.estado === "Abierto").length;
+    const impactoVisible = visibleRows.reduce((a,r)=>a+r.impacto,0);
+
+    // mock de volúmenes operativos (podrían venir de archivos)
+    const recibosRimac = 12540 + randInt(-150,150);
+    const recibosBBVA  = 12480 + randInt(-150,150);
+
+    const kpis = [
+      { label:"Stock pólizas (referencial)", value: fmtNum(STOCK_POLIZAS), note:"Supuesto" },
+      { label:"Ratio error (referencial)", value: (ERROR_RATIO*100).toFixed(1)+"%", note:"Supuesto" },
+      { label:"Potencial inconsistencia (stock×ratio)", value: fmtNum(POTENCIAL_INCONSISTENCIAS), note:"≈" },
+      { label:"Casos pendientes (rango)", value: fmtNum(visibleRows.length), note:"Dashboard" },
+      { label:"Abiertos (rango)", value: fmtNum(abiertos), note:"Gestión" },
+      { label:"Impacto visible (Σ |Δ|)", value: fmtMoney(impactoVisible), note:"Prioridad" },
+      { label:"Recibos solicitados por Rímac (día)", value: fmtNum(recibosRimac), note:"Mock" },
+      { label:"Recibos esperados BBVA (día)", value: fmtNum(recibosBBVA), note:"Mock" },
+    ];
+
+    const grid = document.getElementById("kpiGrid");
+    grid.innerHTML = "";
+    kpis.forEach(k=>{
+      const div = document.createElement("div");
+      div.className = "kpi";
+      div.innerHTML = `
+        <div class="label">
+          <span>${k.label}</span>
+          <span class="badge">${k.note}</span>
+        </div>
+        <div class="value">${k.value}</div>
+        <div class="delta">Rango: <span class="mono">${state.from}</span> → <span class="mono">${state.to}</span></div>
+      `;
+      grid.appendChild(div);
+    });
+  }
+
+  /* =========================================================
+     6) TABLE + pagination + interactions
+     ========================================================= */
+  function paginate(rows){
+    const total = rows.length;
+    const pages = Math.max(1, Math.ceil(total / state.pageSize));
+    if (state.page > pages) state.page = pages;
+    const start = (state.page - 1) * state.pageSize;
+    const end = start + state.pageSize;
+    return { pageRows: rows.slice(start, end), pages, total };
+  }
+
+  function renderTable(rows){
+    const { pageRows, pages, total } = paginate(rows);
+    const tbody = document.getElementById("diffTable");
+    tbody.innerHTML = "";
+
+    pageRows.forEach(r=>{
+      const tr = document.createElement("tr");
+      tr.setAttribute("data-row", r.recibo_id);
+      tr.innerHTML = `
+        <td><input type="checkbox" class="chk rowChk" data-id="${r.recibo_id}" /></td>
+        <td class="mono">${r.fecha}</td>
+        <td class="mono">${r.recibo_id}</td>
+        <td class="mono">${r.poliza}</td>
+        <td>${r.cliente}</td>
+        <td>${r.producto}</td>
+        <td>${r.tipo}</td>
+        <td>${fmtMoney(r.bbva)}</td>
+        <td>${fmtMoney(r.rimac)}</td>
+        <td class="mono">${fmtMoney(r.delta)}</td>
+        <td>
+          <span class="chip">
+            <span class="dot ${sevClass(r.severidad)}"></span>
+            <span class="sevText ${sevClass(r.severidad)}">${r.severidad}</span>
+          </span>
+        </td>
+        <td><span class="chip">${r.estado}</span></td>
+        <td>
+          <button class="linkBtn" data-resolve="${r.recibo_id}">Marcar Resuelto</button>
+          <button class="linkBtn" data-detail="${r.recibo_id}" style="margin-left:10px">Ver detalle</button>
+          <div class="small">${r.accion}</div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+
+      // click en fila -> detalle (excepto controles)
+      tr.addEventListener("click", (e)=>{
+        const tag = e.target.tagName.toLowerCase();
+        if (tag === "button" || tag === "input" || e.target.closest("button") || e.target.closest("input")) return;
+        openDrawer(r);
+      });
+    });
+
+    // contadores
+    const abiertos = rows.filter(r => r.estado === "Abierto").length;
+    const impacto = rows.reduce((a,r)=>a+r.impacto,0);
+
+    document.getElementById("caseCount").textContent = total;
+    document.getElementById("openCount").textContent = abiertos;
+    document.getElementById("impactVisible").textContent = fmtMoney(impacto);
+
+    document.getElementById("pageNow").textContent = state.page;
+    document.getElementById("pageMax").textContent = pages;
+
+    // resolver individual + detalle
+    tbody.querySelectorAll("[data-resolve]").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        resolveMany([btn.getAttribute("data-resolve")]);
+      });
+    });
+    tbody.querySelectorAll("[data-detail]").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        const id = btn.getAttribute("data-detail");
+        const row = pageRows.find(x=>x.recibo_id===id);
+        if (row) openDrawer(row);
+      });
+    });
+
+    // select all (página actual)
+    const chkAll = document.getElementById("chkAll");
+    chkAll.checked = false;
+    chkAll.onchange = () => {
+      tbody.querySelectorAll(".rowChk").forEach(chk => chk.checked = chkAll.checked);
+    };
+  }
+
+  function resolveMany(ids){
+    if (!ids.length) return;
+    const resolved = getResolvedSet();
+    ids.forEach(id => resolved.add(id));
+    setResolvedSet(resolved);
+    pushUndo(ids);
+    toast(`Resuelto: ${ids.length} caso(s)`);
+    rerender();
+  }
+
+  function resolveAllCurrentlyFiltered(rows){
+    const ids = rows.map(r=>r.recibo_id);
+    resolveMany(ids);
+  }
+
+  function undoLast(){
+    const ids = popUndo();
+    if (!ids.length){ toast("Nada que deshacer"); return; }
+    const resolved = getResolvedSet();
+    ids.forEach(id => resolved.delete(id));
+    setResolvedSet(resolved);
+    clearUndo();
+    toast(`Deshecho: ${ids.length} caso(s)`);
+    rerender();
+  }
+
+  function clearResolved(){
+    localStorage.removeItem(LS_KEY);
+    clearUndo();
+    toast("Reiniciado: mostrando todos");
+    rerender();
+  }
+
+  /* =========================================================
+     7) EXPORT
+     ========================================================= */
+  function exportCSV(rows){
+    const headers = ["fecha","recibo_id","poliza","cliente","producto","tipo_diferencia","bbva","rimac","delta","impacto_abs","severidad","estado","canal","origen","lote","accion"];
+    const lines = [headers.join(",")];
+    rows.forEach(r=>{
+      lines.push([
+        r.fecha, r.recibo_id, r.poliza, `"${r.cliente}"`, r.producto, `"${r.tipo}"`,
+        (r.bbva ?? 0).toFixed(2), (r.rimac ?? 0).toFixed(2), (r.delta ?? 0).toFixed(2), (r.impacto ?? 0).toFixed(2),
+        r.severidad, `"${r.estado}"`, r.canal, r.origen, r.lote, `"${r.accion}"`
+      ].join(","));
+    });
+    const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cobranza_diferencias_${state.from}_a_${state.to}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  /* =========================================================
+     8) SELECTS
+     ========================================================= */
+  function fillSelects(){
+    const rows = getAllRows();
+    const products = [...new Set(rows.map(r=>r.producto))].sort();
+    const types = [...new Set(rows.map(r=>r.tipo))].sort();
+
+    const pSel = document.getElementById("fProduct");
+    const tSel = document.getElementById("fType");
+
+    pSel.innerHTML = `<option value="">Todos</option>`;
+    tSel.innerHTML = `<option value="">Todos</option>`;
+
+    products.forEach(p=>{
+      const o = document.createElement("option");
+      o.value = p; o.textContent = p;
+      pSel.appendChild(o);
+    });
+    types.forEach(t=>{
+      const o = document.createElement("option");
+      o.value = t; o.textContent = t;
+      tSel.appendChild(o);
+    });
+  }
+
+  /* =========================================================
+     9) CHARTS (canvas simple, sin librerías)
+     ========================================================= */
+  function clearCanvas(ctx,w,h){
+    ctx.clearRect(0,0,w,h);
+    // fondo (blanco)
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,w,h);
+  }
+
+  function drawBarChart(canvas, labels, values, options){
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+    clearCanvas(ctx,w,h);
+
+    const pad = 40;
+    const innerW = w - pad*2;
+    const innerH = h - pad*2;
+
+    const maxV = Math.max(1, ...values);
+    const barGap = 12;
+    const barW = Math.max(14, (innerW - barGap*(values.length-1)) / values.length);
+
+    // axis
+    ctx.strokeStyle = "#e6ebf2";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(pad, pad+innerH);
+    ctx.lineTo(pad+innerW, pad+innerH);
+    ctx.stroke();
+
+    // bars
+    values.forEach((v,i)=>{
+      const x = pad + i*(barW+barGap);
+      const bh = (v/maxV) * (innerH-10);
+      const y = pad + innerH - bh;
+
+      ctx.fillStyle = options.color(i);
+      ctx.strokeStyle = "#dfe7f2";
+      ctx.lineWidth = 1;
+
+      roundRect(ctx, x, y, barW, bh, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      // value
+      ctx.fillStyle = "#66758c";
+      ctx.font = "700 12px ui-sans-serif, system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(String(v), x + barW/2, y - 8);
+
+      // label
+      ctx.fillStyle = "#0b1f3b";
+      ctx.font = "800 12px ui-sans-serif, system-ui";
+      ctx.textAlign = "center";
+      const label = labels[i].length > 14 ? labels[i].slice(0,13)+"…" : labels[i];
+      ctx.fillText(label, x + barW/2, pad + innerH + 18);
+    });
+  }
+
+  function drawStackedSummaryText(id, text){
+    document.getElementById(id).textContent = text;
+  }
+
+  function drawLineChart(canvas, labels, values){
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+    clearCanvas(ctx,w,h);
+
+    const pad = 50;
+    const innerW = w - pad*2;
+    const innerH = h - pad*2;
+    const maxV = Math.max(1, ...values);
+
+    // axis
+    ctx.strokeStyle = "#e6ebf2";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(pad, pad);
+    ctx.lineTo(pad, pad+innerH);
+    ctx.lineTo(pad+innerW, pad+innerH);
+    ctx.stroke();
+
+    // line
+    const stepX = innerW / Math.max(1, (values.length-1));
+    ctx.strokeStyle = "#0066a1";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    values.forEach((v,i)=>{
+      const x = pad + i*stepX;
+      const y = pad + innerH - (v/maxV)*(innerH-10);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+
+    // points + labels (sparse)
+    values.forEach((v,i)=>{
+      const x = pad + i*stepX;
+      const y = pad + innerH - (v/maxV)*(innerH-10);
+
+      ctx.fillStyle = "#00a6a6";
+      ctx.beginPath();
+      ctx.arc(x,y,5,0,Math.PI*2);
+      ctx.fill();
+
+      if (i===0 || i===values.length-1 || i%5===0){
+        ctx.fillStyle = "#66758c";
+        ctx.font = "800 12px ui-sans-serif, system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText(labels[i].slice(5), x, pad + innerH + 18);
+      }
+    });
+  }
+
+  function roundRect(ctx, x, y, w, h, r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+  }
+
+  function renderCharts(rows){
+    // severidad counts
+    const sevCounts = {Alta:0, Media:0, Info:0};
+    rows.forEach(r=> sevCounts[r.severidad] = (sevCounts[r.severidad]||0)+1);
+
+    drawBarChart(
+      document.getElementById("chartSeverity"),
+      ["Alta","Media","Info"],
+      [sevCounts.Alta, sevCounts.Media, sevCounts.Info],
+      { color: (i)=> (["#d64545","#f0a000","#2e9b4f"][i]) }
+    );
+    drawStackedSummaryText("sevSummary", `Total: ${rows.length}`);
+
+    // impacto por producto
+    const prodImpact = {};
+    rows.forEach(r=>{
+      prodImpact[r.producto] = (prodImpact[r.producto]||0) + r.impacto;
+    });
+    const prodEntries = Object.entries(prodImpact).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const prodLabels = prodEntries.map(e=>e[0]);
+    const prodVals = prodEntries.map(e=>Math.round(e[1]));
+    drawBarChart(
+      document.getElementById("chartImpactProduct"),
+      prodLabels,
+      prodVals,
+      { color: (i)=> (i%2===0 ? "#0066a1" : "#00a6a6") }
+    );
+    const sumImpact = rows.reduce((a,r)=>a+r.impacto,0);
+    drawStackedSummaryText("prodSummary", `Σ|Δ|: ${fmtMoney(sumImpact)}`);
+
+    // tipo top6
+    const typeCounts = {};
+    rows.forEach(r=> typeCounts[r.tipo] = (typeCounts[r.tipo]||0)+1);
+    const typeEntries = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    drawBarChart(
+      document.getElementById("chartType"),
+      typeEntries.map(e=>e[0]),
+      typeEntries.map(e=>e[1]),
+      { color: (i)=> (["#004481","#0066a1","#00a6a6","#2e9b4f","#f0a000","#d64545"][i%6]) }
+    );
+    drawStackedSummaryText("typeSummary", `Tipos: ${Object.keys(typeCounts).length}`);
+
+    // tendencia diaria (casos por día)
+    const dayCounts = {};
+    rows.forEach(r=> dayCounts[r.fecha] = (dayCounts[r.fecha]||0)+1);
+    const days = Object.keys(dayCounts).sort();
+    const vals = days.map(d=>dayCounts[d]);
+    drawLineChart(document.getElementById("chartTrend"), days, vals);
+    drawStackedSummaryText("trendSummary", `${days.length} día(s) con casos`);
+  }
+
+  /* =========================================================
+     10) Drawer (detalle)
+     ========================================================= */
+  function openDrawer(row){
+    const overlay = document.getElementById("drawerOverlay");
+    const drawer = document.getElementById("drawer");
+    const body = document.getElementById("drawerBody");
+
+    body.innerHTML = `
+      <div class="kv"><div>Fecha</div><div class="mono">${row.fecha}</div></div>
+      <div class="kv"><div>Recibo</div><div class="mono">${row.recibo_id}</div></div>
+      <div class="kv"><div>Póliza</div><div class="mono">${row.poliza}</div></div>
+      <div class="kv"><div>Cliente</div><div>${row.cliente}</div></div>
+      <div class="kv"><div>Producto</div><div>${row.producto}</div></div>
+      <div class="kv"><div>Tipo</div><div>${row.tipo}</div></div>
+      <div class="kv"><div>Severidad</div><div><span class="chip"><span class="dot ${sevClass(row.severidad)}"></span>${row.severidad}</span></div></div>
+      <div class="kv"><div>Estado</div><div><span class="chip">${row.estado}</span></div></div>
+      <div class="kv"><div>BBVA</div><div class="mono">${fmtMoney(row.bbva)}</div></div>
+      <div class="kv"><div>Rímac</div><div class="mono">${fmtMoney(row.rimac)}</div></div>
+      <div class="kv"><div>Δ</div><div class="mono">${fmtMoney(row.delta)}</div></div>
+      <div class="kv"><div>Canal</div><div>${row.canal}</div></div>
+      <div class="kv"><div>Origen</div><div>${row.origen}</div></div>
+      <div class="kv"><div>Lote</div><div class="mono">${row.lote}</div></div>
+
+      <div class="card" style="margin-top:12px;border-radius:14px">
+        <div class="cardHeader"><h2 style="margin:0">Acción sugerida</h2><div class="small">Guía operativa</div></div>
+        <div class="cardBody" style="padding:12px 14px">
+          <div style="font-size:12.5px;color:var(--text);font-weight:800">${row.accion}</div>
+          <div class="btnRow" style="justify-content:flex-start;margin-top:10px">
+            <button class="primary" id="drawerResolve">Marcar como Resuelto</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    overlay.classList.add("open");
+    drawer.classList.add("open");
+
+    document.getElementById("drawerResolve").onclick = ()=> resolveMany([row.recibo_id]);
+  }
+
+  function closeDrawer(){
+    document.getElementById("drawerOverlay").classList.remove("open");
+    document.getElementById("drawer").classList.remove("open");
+  }
+
+  document.getElementById("drawerOverlay").addEventListener("click", closeDrawer);
+  document.getElementById("drawerClose").addEventListener("click", closeDrawer);
+
+  /* =========================================================
+     11) Toast
+     ========================================================= */
+  let toastTimer = null;
+  function toast(msg){
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove("show"), 1900);
+  }
+
+  /* =========================================================
+     12) RERENDER
+     ========================================================= */
+  function rerender(){
+    const all = getAllRows();
+    const filtered = applyFilters(all);
+
+    setRangeLabel();
+    renderKPIs(filtered);
+    renderCharts(filtered);
+    renderTable(filtered);
+
+    document.getElementById("procStatus").textContent = filtered.length ? "Pendientes" : "Sin pendientes";
+  }
+
+  /* =========================================================
+     13) INIT
+     ========================================================= */
+  function init(){
+    // default: hoy (en mock) = 2026-02-13
+    document.getElementById("fFrom").value = state.from;
+    document.getElementById("fTo").value = state.to;
+
+    fillSelects();
+    rerender();
+  }
+
+  /* =========================================================
+     14) UI EVENTS
+     ========================================================= */
+  document.getElementById("btnApply").addEventListener("click", ()=>{
+    state.from = document.getElementById("fFrom").value || state.from;
+    state.to = document.getElementById("fTo").value || state.to;
+    if (state.to < state.from){
+      const tmp = state.from; state.from = state.to; state.to = tmp;
+      document.getElementById("fFrom").value = state.from;
+      document.getElementById("fTo").value = state.to;
+    }
+    state.search = document.getElementById("fSearch").value.trim();
+    state.product = document.getElementById("fProduct").value;
+    state.type = document.getElementById("fType").value;
+    state.sev = document.getElementById("fSev").value;
+    state.page = 1;
+    rerender();
+  });
+
+  document.getElementById("btnClear").addEventListener("click", ()=>{
+    state.search=""; state.product=""; state.type=""; state.sev="";
+    state.from = "2026-02-13"; state.to = "2026-02-13";
+    state.page = 1;
+
+    document.getElementById("fSearch").value="";
+    document.getElementById("fProduct").value="";
+    document.getElementById("fType").value="";
+    document.getElementById("fSev").value="";
+    document.getElementById("fFrom").value=state.from;
+    document.getElementById("fTo").value=state.to;
+
+    rerender();
+  });
+
+  // quick ranges
+  function setQuick(days){
+    state.to = "2026-02-13";
+    state.from = dateAddDays(state.to, -days+1);
+    document.getElementById("fFrom").value = state.from;
+    document.getElementById("fTo").value = state.to;
+    state.page = 1;
+    rerender();
+  }
+  document.getElementById("btnQuick7").addEventListener("click", ()=>setQuick(7));
+  document.getElementById("btnQuick30").addEventListener("click", ()=>setQuick(30));
+
+  // page size + paging
+  document.getElementById("pageSize").addEventListener("change", (e)=>{
+    state.pageSize = parseInt(e.target.value,10);
+    state.page = 1;
+    rerender();
+  });
+  document.getElementById("prevPage").addEventListener("click", ()=>{
+    state.page = Math.max(1, state.page - 1);
+    rerender();
+  });
+  document.getElementById("nextPage").addEventListener("click", ()=>{
+    const pages = Math.max(1, Math.ceil(applyFilters(getAllRows()).length / state.pageSize));
+    state.page = Math.min(pages, state.page + 1);
+    rerender();
+  });
+
+  // resolve selected
+  document.getElementById("btnResolveSelected").addEventListener("click", ()=>{
+    const checks = Array.from(document.querySelectorAll(".rowChk")).filter(c=>c.checked);
+    const ids = checks.map(c=>c.getAttribute("data-id"));
+    if (ids.length) resolveMany(ids);
+    else toast("No hay seleccionados");
+  });
+
+  // export
+  document.getElementById("btnExport").addEventListener("click", ()=>{
+    const filtered = applyFilters(getAllRows());
+    exportCSV(filtered);
+  });
+
+  // menu
+  const menuBtn = document.getElementById("menuBtn");
+  const menu = document.getElementById("menu");
+  menuBtn.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    menu.classList.toggle("open");
+  });
+  document.addEventListener("click", ()=>menu.classList.remove("open"));
+
+  document.getElementById("btnResolveAll").addEventListener("click", ()=>{
+    const filtered = applyFilters(getAllRows());
+    if (!filtered.length){ toast("No hay casos en el rango"); return; }
+    resolveAllCurrentlyFiltered(filtered);
+    menu.classList.remove("open");
+  });
+  document.getElementById("btnUndoLast").addEventListener("click", ()=>{
+    undoLast();
+    menu.classList.remove("open");
+  });
+  document.getElementById("btnClearResolved").addEventListener("click", ()=>{
+    clearResolved();
+    menu.classList.remove("open");
+  });
+
+  init();
+</script>
+</body>
+</html>
