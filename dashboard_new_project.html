@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Financiero – Proyecto 8 pisos</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#111a33;
+      --card2:#0f1730;
+      --text:#e8eefc;
+      --muted:#a9b7e6;
+      --line:#24335f;
+      --good:#35d07f;
+      --warn:#ffcc66;
+      --bad:#ff5c7a;
+      --accent:#7aa2ff;
+      --accent2:#9d7bff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background: radial-gradient(1200px 700px at 20% 0%, rgba(122,162,255,.18), transparent 55%),
+                        radial-gradient(1000px 650px at 80% 10%, rgba(157,123,255,.12), transparent 50%),
+                        var(--bg);
+      color:var(--text); font-family:var(--sans);
+    }
+    header{
+      padding:28px 18px 10px;
+      max-width:1180px; margin:0 auto;
+      display:flex; gap:16px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap;
+    }
+    .title{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    h1{margin:0; font-size:20px; letter-spacing:.2px}
+    .subtitle{color:var(--muted); font-size:13px; line-height:1.35}
+    .chipRow{display:flex; gap:10px; flex-wrap:wrap}
+    .chip{
+      padding:8px 10px; border:1px solid rgba(122,162,255,.25);
+      background: rgba(17,26,51,.6);
+      border-radius:999px; color:var(--muted); font-size:12px;
+      backdrop-filter: blur(8px);
+    }
+    main{max-width:1180px; margin:0 auto; padding:10px 18px 26px}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:14px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(17,26,51,.88), rgba(15,23,48,.88));
+      border:1px solid rgba(36,51,95,.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 240px at 10% 0%, rgba(122,162,255,.18), transparent 55%),
+                  radial-gradient(560px 240px at 90% 0%, rgba(157,123,255,.12), transparent 55%);
+      pointer-events:none;
+      opacity:.9;
+    }
+    .card > *{position:relative}
+    .kpi{
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .kpi .label{color:var(--muted); font-size:12px}
+    .kpi .value{font-size:22px; font-weight:700; letter-spacing:.2px}
+    .kpi .note{color:var(--muted); font-size:12px; line-height:1.35}
+    .mono{font-family:var(--mono)}
+    .row{
+      display:flex; justify-content:space-between; gap:10px; align-items:baseline;
+    }
+    .small{font-size:12px; color:var(--muted)}
+    .good{color:var(--good)}
+    .warn{color:var(--warn)}
+    .bad{color:var(--bad)}
+    .span-12{grid-column: span 12;}
+    .span-8{grid-column: span 8;}
+    .span-7{grid-column: span 7;}
+    .span-6{grid-column: span 6;}
+    .span-5{grid-column: span 5;}
+    .span-4{grid-column: span 4;}
+    .span-3{grid-column: span 3;}
+    .span-2{grid-column: span 2;}
+    @media (max-width: 980px){
+      .span-8,.span-7{grid-column: span 12;}
+      .span-6{grid-column: span 6;}
+      .span-5{grid-column: span 12;}
+      .span-4{grid-column: span 6;}
+    }
+    @media (max-width: 640px){
+      .span-6,.span-4,.span-3,.span-2{grid-column: span 12;}
+    }
+    .sectionTitle{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom:10px;
+    }
+    .sectionTitle h2{margin:0; font-size:14px; letter-spacing:.3px}
+    .controls{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    select, input[type="number"]{
+      background: rgba(11,16,32,.65);
+      border:1px solid rgba(36,51,95,.9);
+      color:var(--text);
+      border-radius:12px;
+      padding:8px 10px;
+      font-size:12px;
+      outline:none;
+    }
+    .chartWrap{height:250px;}
+    svg{width:100%; height:100%;}
+    .legend{display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; color:var(--muted); font-size:12px}
+    .dot{width:10px; height:10px; border-radius:999px; display:inline-block; margin-right:6px; vertical-align:middle}
+    .dotA{background:var(--accent)}
+    .dotB{background:var(--accent2)}
+    table{width:100%; border-collapse:collapse; margin-top:8px; font-size:12.5px}
+    th,td{padding:10px 8px; border-bottom:1px solid rgba(36,51,95,.85); text-align:left}
+    th{color:var(--muted); font-weight:600; font-size:12px}
+    .right{text-align:right}
+    .muted{color:var(--muted)}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid rgba(36,51,95,.9);
+      background: rgba(11,16,32,.55);
+      border-radius:999px;
+      padding:7px 10px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .hr{
+      height:1px; background: rgba(36,51,95,.85); margin:10px 0 0;
+    }
+    footer{
+      max-width:1180px; margin:0 auto; padding:0 18px 26px;
+      color:var(--muted); font-size:12px; line-height:1.4;
+    }
+    .badge{
+      font-size:11px; padding:5px 8px; border-radius:999px;
+      border:1px solid rgba(36,51,95,.9);
+      background: rgba(11,16,32,.55);
+      color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <h1>Dashboard Financiero – Proyecto 8 pisos (16 depas + 6 cocheras)</h1>
+    <div class="subtitle">
+      Supuestos: área vendible <span class="mono">1,123 m²</span>, precio mercado <span class="mono">S/ 5,650/m²</span>,
+      descuento familia <span class="mono">5%</span>, familia recibe <span class="mono">4 depas (~68 m²)</span> + <span class="mono">2 cocheras</span>.
+    </div>
+  </div>
+  <div class="chipRow">
+    <div class="chip">Terreno: <span class="mono">S/ 1,000,000</span></div>
+    <div class="chip">Cash familia: <span class="mono">S/ 540,000</span></div>
+    <div class="chip">Alquiler depa: <span class="mono">S/ 2,100/mes</span></div>
+    <div class="chip">Alquiler cochera: <span class="mono">S/ 300/mes</span></div>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+
+    <!-- KPI row -->
+    <div class="card span-3">
+      <div class="kpi">
+        <div class="label">Costo total del proyecto (estimado)</div>
+        <div class="value mono" id="kpi_total_cost">—</div>
+        <div class="note">Incluye terreno + obra + indirectos/financieros + cocheras.</div>
+      </div>
+    </div>
+
+    <div class="card span-3">
+      <div class="kpi">
+        <div class="label">VGV total a mercado</div>
+        <div class="value mono" id="kpi_vgv_market">—</div>
+        <div class="note">Depas + cocheras (mercado).</div>
+      </div>
+    </div>
+
+    <div class="card span-3">
+      <div class="kpi">
+        <div class="label">Utilidad promotor (post-descuento)</div>
+        <div class="value mono" id="kpi_profit">—</div>
+        <div class="note">Aprox. <span class="mono" id="kpi_margin">—</span> sobre VGV mercado.</div>
+      </div>
+    </div>
+
+    <div class="card span-3">
+      <div class="kpi">
+        <div class="label">Yield bruto (familia)</div>
+        <div class="value mono" id="kpi_yield">—</div>
+        <div class="note">Ingreso anual / aporte total familia.</div>
+      </div>
+    </div>
+
+    <!-- Project cost breakdown -->
+    <div class="card span-7">
+      <div class="sectionTitle">
+        <h2>1) Costo total del proyecto</h2>
+        <span class="pill">Total: <span class="mono" id="pill_total_cost">—</span></span>
+      </div>
+      <div class="chartWrap" id="costChart"></div>
+      <div class="legend">
+        <span><span class="dot dotA"></span>Componentes de costo (S/)</span>
+      </div>
+      <div class="hr"></div>
+      <table>
+        <thead>
+          <tr><th>Componente</th><th class="right">Monto (S/)</th><th class="right">% del total</th></tr>
+        </thead>
+        <tbody id="costTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Investment distribution -->
+    <div class="card span-5">
+      <div class="sectionTitle">
+        <h2>2) Distribución de inversiones</h2>
+        <div class="controls">
+          <input id="familyCash" type="number" min="0" step="10000" value="540000" title="Cash familia (S/)" />
+          <select id="discount">
+            <option value="0.05" selected>Descuento familia: 5%</option>
+            <option value="0.03">Descuento familia: 3%</option>
+            <option value="0.08">Descuento familia: 8%</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="kpi" style="gap:10px">
+        <div class="row">
+          <div class="small">Aporte familia (terreno + cash)</div>
+          <div class="mono" id="familyTotal">—</div>
+        </div>
+        <div class="row">
+          <div class="small">Paquete familia (precio especial)</div>
+          <div class="mono" id="familyPackage">—</div>
+        </div>
+        <div class="row">
+          <div class="small">Brecha (paquete − aporte)</div>
+          <div class="mono" id="gap">—</div>
+        </div>
+        <div class="note">
+          Supuesto: 4 depas de <span class="mono">68 m²</span> y 2 cocheras. El promotor entrega “acabado básico”; la familia asume acabados finales.
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="chartWrap" style="height:210px" id="investChart"></div>
+      <div class="legend">
+        <span><span class="dot dotA"></span>Familia</span>
+        <span><span class="dot dotB"></span>Promotor (financia vía preventas + crédito)</span>
+      </div>
+
+      <div class="hr"></div>
+
+      <table>
+        <thead>
+          <tr><th>Parte</th><th class="right">Inversión directa (S/)</th><th class="right">Obtiene</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Familia</td>
+            <td class="right mono" id="tbl_family_inv">—</td>
+            <td class="right muted">4 depas + 2 cocheras</td>
+          </tr>
+          <tr>
+            <td>Promotor</td>
+            <td class="right mono" id="tbl_promoter_inv">S/ 300k–600k (equity mínimo)</td>
+            <td class="right muted">12 depas + 4 cocheras (venta)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="small muted" style="margin-top:10px">
+        Nota: la mayor parte del “fondeo” del promotor proviene de preventas (30–40%) + crédito constructor + cuotas.
+      </div>
+    </div>
+
+    <!-- Rental profitability -->
+    <div class="card span-12">
+      <div class="sectionTitle">
+        <h2>3) Rentabilidad por alquiler (familia)</h2>
+        <div class="controls">
+          <input id="rentApt" type="number" min="0" step="50" value="2100" title="Alquiler por depa (S/ mes)" />
+          <input id="rentPark" type="number" min="0" step="50" value="300" title="Alquiler por cochera (S/ mes)" />
+        </div>
+      </div>
+
+      <div class="grid" style="gap:14px">
+        <div class="card span-4" style="box-shadow:none">
+          <div class="kpi">
+            <div class="label">Ingreso mensual (dep + coch)</div>
+            <div class="value mono" id="rentMonthly">—</div>
+            <div class="note">4 depas + 2 cocheras.</div>
+          </div>
+        </div>
+        <div class="card span-4" style="box-shadow:none">
+          <div class="kpi">
+            <div class="label">Ingreso anual</div>
+            <div class="value mono" id="rentAnnual">—</div>
+            <div class="note">Sin considerar vacancia/mora.</div>
+          </div>
+        </div>
+        <div class="card span-4" style="box-shadow:none">
+          <div class="kpi">
+            <div class="label">Yield bruto anual</div>
+            <div class="value mono" id="rentYield">—</div>
+            <div class="note">Ingreso anual / aporte familia.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="grid">
+        <div class="card span-6" style="box-shadow:none">
+          <div class="sectionTitle" style="margin-bottom:6px">
+            <h2>Escenarios (vacancia)</h2>
+            <span class="badge">Ajusta rápido el “realismo” del flujo</span>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Vacancia</th><th class="right">Ingreso anual</th><th class="right">Yield</th></tr>
+            </thead>
+            <tbody id="vacancyTable"></tbody>
+          </table>
+        </div>
+
+        <div class="card span-6" style="box-shadow:none">
+          <div class="sectionTitle" style="margin-bottom:6px">
+            <h2>Resumen de unidades</h2>
+            <span class="badge">Negociación: entrega “básica”</span>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Parte</th><th class="right">Departamentos</th><th class="right">Cocheras</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Familia</td><td class="right mono">4</td><td class="right mono">2</td></tr>
+              <tr><td>Promotor</td><td class="right mono">12</td><td class="right mono">4</td></tr>
+              <tr><td class="muted">Total</td><td class="right mono muted">16</td><td class="right mono muted">6</td></tr>
+            </tbody>
+          </table>
+          <div class="small muted" style="margin-top:10px">
+            Idea de negociación: el promotor entrega “acabado básico” (reduce su costo) y ustedes asumen acabados finales para facilitar alcanzar 4+ departamentos.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="muted">
+    Este dashboard usa supuestos de orden de magnitud (no reemplaza un presupuesto final ni un expediente técnico). 
+    Variables sensibles: eficiencia vendible real, costo por m² construido (8 pisos + ascensor), costo financiero y velocidad de preventas.
+  </div>
+</footer>
+
+<script>
+  // ======= Inputs / assumptions =======
+  const A_VENDIBLE = 1123;                 // m² vendibles estimados
+  const PRICE_MARKET = 5650;              // S/ por m² (mercado)
+  const PARK_QTY_TOTAL = 6;
+  const PARK_PRICE_MARKET = 40000;        // S/ por cochera (mercado)
+
+  // Cost assumptions (S/) - baseline dashboard
+  const COST_BUILD_ELEV = 3700000;        // construcción + ascensor
+  const COST_IND_FIN = 900000;            // indirectos + financieros + ventas
+  const COST_PARK_WORKS = 60000;          // obras cocheras (área libre)
+  const LAND_VALUE = 1000000;             // terreno (familia)
+
+  // Family package assumptions
+  const FAMILY_APTS = 4;
+  const FAMILY_APT_M2 = 68;               // ~68 m² para calzar mejor
+  const FAMILY_PARKS = 2;
+
+  // Rental assumptions default
+  let rentApt = 2100;
+  let rentPark = 300;
+
+  // Family cash default editable
+  let familyCash = 540000;
+  let discount = 0.05;
+
+  // ======= Helpers =======
+  function fmtSol(n){
+    const sign = n < 0 ? "-" : "";
+    n = Math.abs(n);
+    return sign + "S/ " + Math.round(n).toLocaleString("es-PE");
+  }
+  function fmtPct(x){
+    return (x*100).toFixed(1) + "%";
+  }
+
+  // Simple SVG bar chart (horizontal)
+  function renderHBarChart(el, items, colorVar="--accent"){
+    const max = Math.max(...items.map(d => d.value), 1);
+    const width = 1000, height = 46*items.length + 20;
+    const barH = 22, gap = 24, left = 260, right = 30, top = 10;
+
+    const color = getComputedStyle(document.documentElement).getPropertyValue(colorVar).trim() || "#7aa2ff";
+    const line = getComputedStyle(document.documentElement).getPropertyValue("--line").trim() || "#24335f";
+    const muted = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim() || "#a9b7e6";
+    const text = getComputedStyle(document.documentElement).getPropertyValue("--text").trim() || "#e8eefc";
+
+    let svg = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="chart">`;
+    svg += `<rect x="0" y="0" width="${width}" height="${height}" fill="transparent" />`;
+
+    items.forEach((d,i)=>{
+      const y = top + i* (barH + gap);
+      const w = (width - left - right) * (d.value / max);
+
+      svg += `<text x="10" y="${y+16}" fill="${muted}" font-size="14" font-family="ui-sans-serif,system-ui">${d.label}</text>`;
+      svg += `<rect x="${left}" y="${y}" width="${width-left-right}" height="${barH}" rx="10" fill="rgba(36,51,95,.35)" stroke="${line}" />`;
+      svg += `<rect x="${left}" y="${y}" width="${Math.max(8,w)}" height="${barH}" rx="10" fill="${color}" opacity="0.95"/>`;
+      svg += `<text x="${width-right}" y="${y+16}" fill="${text}" font-size="14" font-family="ui-monospace,Menlo,Consolas" text-anchor="end">${fmtSol(d.value)}</text>`;
+    });
+
+    svg += `</svg>`;
+    el.innerHTML = svg;
+  }
+
+  // Simple stacked investment "pill" chart (family vs promoter narrative)
+  function renderStack(el, familyValue){
+    const width = 1000, height = 160;
+    // Here promoter direct equity is small; main funding is via preventas + crédito.
+    // We'll visualize "capital at risk / aporte directo" as: familyValue vs promoterEquityMid.
+    const promoterEquityMid = 450000;
+    const total = familyValue + promoterEquityMid;
+
+    const cA = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#7aa2ff";
+    const cB = getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || "#9d7bff";
+    const muted = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim() || "#a9b7e6";
+    const line = getComputedStyle(document.documentElement).getPropertyValue("--line").trim() || "#24335f";
+    const text = getComputedStyle(document.documentElement).getPropertyValue("--text").trim() || "#e8eefc";
+
+    const x = 30, y = 55, w = 940, h = 28;
+    const wA = w * (familyValue/total);
+    const wB = w - wA;
+
+    let svg = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="investment">`;
+    svg += `<text x="${x}" y="26" fill="${muted}" font-size="13">Inversión directa (aprox.)</text>`;
+    svg += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="14" fill="rgba(36,51,95,.35)" stroke="${line}" />`;
+    svg += `<rect x="${x}" y="${y}" width="${Math.max(18,wA)}" height="${h}" rx="14" fill="${cA}" opacity="0.95"/>`;
+    svg += `<rect x="${x+wA}" y="${y}" width="${Math.max(18,wB)}" height="${h}" rx="14" fill="${cB}" opacity="0.85"/>`;
+
+    svg += `<text x="${x}" y="${y+60}" fill="${text}" font-family="ui-monospace,Menlo,Consolas" font-size="13">Familia: ${fmtSol(familyValue)}</text>`;
+    svg += `<text x="${x}" y="${y+82}" fill="${muted}" font-size="12">Terreno + cash (equity)</text>`;
+
+    svg += `<text x="${x+520}" y="${y+60}" fill="${text}" font-family="ui-monospace,Menlo,Consolas" font-size="13">Promotor: ~${fmtSol(450000)}</text>`;
+    svg += `<text x="${x+520}" y="${y+82}" fill="${muted}" font-size="12">Equity mínimo + gestión</text>`;
+
+    svg += `<text x="${x}" y="${y+118}" fill="${muted}" font-size="12">Fondeo principal promotor: preventas (30–40%) + crédito constructor + cuotas.</text>`;
+    svg += `</svg>`;
+    el.innerHTML = svg;
+  }
+
+  function update(){
+    // Read inputs
+    familyCash = Number(document.getElementById("familyCash").value || 0);
+    discount = Number(document.getElementById("discount").value || 0);
+    rentApt = Number(document.getElementById("rentApt").value || 0);
+    rentPark = Number(document.getElementById("rentPark").value || 0);
+
+    // Market VGV
+    const vgv_depas_market = A_VENDIBLE * PRICE_MARKET;
+    const vgv_parks_market = PARK_QTY_TOTAL * PARK_PRICE_MARKET;
+    const vgv_market = vgv_depas_market + vgv_parks_market;
+
+    // Total cost (baseline)
+    const total_cost = COST_BUILD_ELEV + COST_IND_FIN + COST_PARK_WORKS + LAND_VALUE;
+
+    // Family package at special price (discount)
+    const family_price_m2 = PRICE_MARKET * (1 - discount);
+    const family_apt_area = FAMILY_APTS * FAMILY_APT_M2;
+    const family_apts_value = family_apt_area * family_price_m2;
+    const family_parks_value = FAMILY_PARKS * (PARK_PRICE_MARKET * (1 - discount));
+    const family_package_value = family_apts_value + family_parks_value;
+
+    // Family total contribution
+    const family_total = LAND_VALUE + familyCash;
+    const gap = family_package_value - family_total; // positive means package exceeds contribution
+
+    // Profit approx for promoter:
+    // baseline: VGV market - total_cost
+    // then subtract "discount cost": difference between market value of family package and special price value
+    const family_package_market_value = (family_apt_area * PRICE_MARKET) + (FAMILY_PARKS * PARK_PRICE_MARKET);
+    const discount_cost = family_package_market_value - family_package_value;
+    const profit_after_discount = (vgv_market - total_cost) - discount_cost;
+    const margin_after_discount = profit_after_discount / vgv_market;
+
+    // Rental flow
+    const rent_month = (FAMILY_APTS * rentApt) + (FAMILY_PARKS * rentPark);
+    const rent_year = rent_month * 12;
+    const yld = rent_year / family_total;
+
+    // KPIs
+    document.getElementById("kpi_total_cost").textContent = fmtSol(total_cost);
+    document.getElementById("pill_total_cost").textContent = fmtSol(total_cost);
+    document.getElementById("kpi_vgv_market").textContent = fmtSol(vgv_market);
+    document.getElementById("kpi_profit").textContent = fmtSol(profit_after_discount);
+    document.getElementById("kpi_margin").textContent = fmtPct(margin_after_discount);
+    document.getElementById("kpi_yield").textContent = fmtPct(yld);
+
+    // Investment section
+    document.getElementById("familyTotal").textContent = fmtSol(family_total);
+    document.getElementById("familyPackage").textContent = fmtSol(family_package_value);
+    const gapEl = document.getElementById("gap");
+    gapEl.textContent = fmtSol(gap);
+    gapEl.className = "mono " + (gap > 0 ? "warn" : (gap < 0 ? "good" : "muted"));
+    document.getElementById("tbl_family_inv").textContent = fmtSol(family_total);
+
+    // Cost chart
+    const costItems = [
+      {label:"Construcción + ascensor", value:COST_BUILD_ELEV},
+      {label:"Indirectos / financieros / ventas", value:COST_IND_FIN},
+      {label:"Cocheras (obras área libre)", value:COST_PARK_WORKS},
+      {label:"Terreno (valorizado)", value:LAND_VALUE},
+    ];
+    renderHBarChart(document.getElementById("costChart"), costItems, "--accent");
+
+    // Cost table
+    const tbody = document.getElementById("costTable");
+    tbody.innerHTML = "";
+    costItems.forEach(d=>{
+      const pct = d.value / total_cost;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${d.label}</td>
+                      <td class="right mono">${fmtSol(d.value)}</td>
+                      <td class="right mono muted">${fmtPct(pct)}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Investment chart
+    renderStack(document.getElementById("investChart"), family_total);
+
+    // Rental section
+    document.getElementById("rentMonthly").textContent = fmtSol(rent_month);
+    document.getElementById("rentAnnual").textContent = fmtSol(rent_year);
+    document.getElementById("rentYield").textContent = fmtPct(yld);
+
+    // Vacancy scenarios
+    const vac = [0, 0.05, 0.10, 0.15];
+    const vtbody = document.getElementById("vacancyTable");
+    vtbody.innerHTML = "";
+    vac.forEach(v=>{
+      const annual = rent_year * (1 - v);
+      const y = annual / family_total;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td class="mono">${Math.round(v*100)}%</td>
+                      <td class="right mono">${fmtSol(annual)}</td>
+                      <td class="right mono muted">${fmtPct(y)}</td>`;
+      vtbody.appendChild(tr);
+    });
+  }
+
+  // Wire events
+  ["familyCash","discount","rentApt","rentPark"].forEach(id=>{
+    document.getElementById(id).addEventListener("input", update);
+    document.getElementById(id).addEventListener("change", update);
+  });
+
+  update();
+</script>
+</body>
+</html>
