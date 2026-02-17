@@ -1,0 +1,294 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard | Socios Potenciales (Pueblo Libre & San Miguel)</title>
+<style>
+:root {
+  --bg: #0b1020;
+  --card: rgba(255,255,255,0.08);
+  --card2: rgba(255,255,255,0.06);
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.68);
+  --line: rgba(255,255,255,0.10);
+}
+*{box-sizing:border-box}
+body {
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(1200px 600px at 20% 0%, rgba(86,114,255,0.25), transparent),
+              radial-gradient(900px 600px at 80% 10%, rgba(0,204,204,0.18), transparent),
+              var(--bg);
+  color: var(--text);
+}
+header {
+  padding: 26px 22px 10px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+h1 {margin:0 0 6px; font-size: 22px; letter-spacing:0.2px}
+.sub {color: var(--muted); font-size: 13px; line-height:1.4}
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 22px 28px;
+}
+.kpis {
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 12px;
+  margin: 14px 0 16px;
+}
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 12px;
+}
+.kpi .v {font-size: 18px; font-weight: 700}
+.kpi .l {font-size: 12px; color: var(--muted); margin-top: 2px}
+.controls {
+  display:flex; gap:10px; flex-wrap:wrap;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  align-items:end;
+}
+.control {display:flex; flex-direction:column; gap:6px}
+label {font-size: 12px; color: var(--muted)}
+select, input {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 10px 10px;
+  border-radius: 12px;
+  outline:none;
+  min-width: 190px;
+}
+button {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.12);
+  color: var(--text);
+  cursor: pointer;
+}
+.grid {
+  margin-top: 14px;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 12px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+.top {
+  display:flex; justify-content:space-between; gap:10px;
+}
+.badge {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  white-space:nowrap;
+}
+.title {font-weight: 750; line-height:1.25}
+.small {font-size: 12px; color: var(--muted)}
+.row {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.item .k {font-size: 11px; color: var(--muted)}
+.item .v {font-size: 13px}
+.tip {
+  padding: 10px 10px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.footer {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height:1.4;
+}
+@media (max-width: 980px){
+  .kpis{grid-template-columns: 1fr 1fr}
+  .grid{grid-template-columns: 1fr}
+  select, input{min-width: 160px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Socios potenciales (promotores pequeños) — Pueblo Libre & San Miguel</h1>
+  <div class="sub">
+    Dashboard construido desde el PDF “Listado de socios potenciales”. Incluye lectura cualitativa para decisión:
+    solidez (capacidad de ejecución), reputación (señales de mercado), poder de negociación (qué tan “duro” será) y fit con tu objetivo (control + rapidez).
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="kpis" id="kpis"></div>
+
+  <div class="controls">
+    <div class="control">
+      <label>Distrito</label>
+      <select id="fDistrito">
+        <option value="">Todos</option>
+        <option>Pueblo Libre</option>
+        <option>San Miguel</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>Tamaño</label>
+      <select id="fTam">
+        <option value="">Todos</option>
+        <option>Micro (11–15)</option>
+        <option>Micro (16–20)</option>
+        <option>Pequeño (21–30)</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>Búsqueda</label>
+      <input id="q" placeholder="empresa o proyecto…">
+    </div>
+    <div class="control">
+      <label>Ordenar por</label>
+      <select id="sortBy">
+        <option value="score_fit">Score (fit)</option>
+        <option value="departamentos"># Departamentos</option>
+        <option value="empresa">Empresa</option>
+      </select>
+    </div>
+    <button id="reset">Reset</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="footer">
+    <b>Cómo usarlo:</b> Prioriza “Micro (11–15)” si quieres negociar fuerte y moverte rápido. 
+    Prioriza “Micro (16–20)” si quieres un poco más de estructura sin irte a un mediano “pesado”. 
+    El “Score (fit)” es una heurística (no reemplaza due diligence legal/técnico).<br>
+    <b>Siguiente paso recomendado:</b> Para los 3–5 finalistas, levantar: RUC, razón social, tipo societario, fecha de inicio de actividades, domicilio fiscal, representantes y si tienen procedimientos/observaciones (SUNAT/OSCE/Indecopi si aplica).
+  </div>
+</div>
+
+<script>
+const DATA = [{"distrito": "Pueblo Libre", "empresa": "Grupo Inmobiliario AFM / Inizia", "tipo_empresa": "(por confirmar en SUNAT)", "proyecto": "Aragón 375", "pisos": "7 + (no indicado)", "departamentos": 11, "categoria_tamano": "Micro (11–15)", "rasgos": "Terraza común; estacionamiento para bicicletas.", "solidez": "Baja (operación muy pequeña)", "reputacion": "N/D", "negociacion": "Baja", "fit_para_tu_proyecto": "Muy alto (flexible y manejable)", "decision_tip": "Buen candidato si priorizas control, rapidez y negociar fuerte.", "score_fit": 10}, {"distrito": "Pueblo Libre", "empresa": "Inmobiliaria Valkiria SAC", "tipo_empresa": "SAC", "proyecto": "Parque Madrid", "pisos": "7 + azotea; 1 sótano/semisótano", "departamentos": 18, "categoria_tamano": "Micro (16–20)", "rasgos": "13 flats + 5 dúplex; 13 estacionamientos; frente a parque; financia BCP (según fuente).", "solidez": "Media-baja (pocas unidades, pero bancarizable)", "reputacion": "N/D", "negociacion": "Media", "fit_para_tu_proyecto": "Alto", "decision_tip": "Equilibrio entre bancarización y flexibilidad; útil si buscas socio 'chico pero ordenado'.", "score_fit": 9}, {"distrito": "Pueblo Libre", "empresa": "Construim Inmobiliaria SAC", "tipo_empresa": "SAC", "proyecto": "Zen II", "pisos": "(no indicado)", "departamentos": 20, "categoria_tamano": "Micro (16–20)", "rasgos": "14 estacionamientos; 12 depósitos.", "solidez": "Media-baja", "reputacion": "N/D", "negociacion": "Media-baja", "fit_para_tu_proyecto": "Alto", "decision_tip": "Puede valorar alianza por ventas/financiamiento; revisar calidad de ejecución.", "score_fit": 10}, {"distrito": "Pueblo Libre", "empresa": "Tierra Blanca Inmobiliaria", "tipo_empresa": "(por confirmar en SUNAT)", "proyecto": "Garden 482", "pisos": "(no indicado)", "departamentos": 27, "categoria_tamano": "Pequeño (21–30)", "rasgos": "Proyecto boutique; doble fachada; cerca Av. Simón Bolívar; vivienda sostenible/kit smart.", "solidez": "Media", "reputacion": "Enfoque sostenible", "negociacion": "Media", "fit_para_tu_proyecto": "Medio-alto", "decision_tip": "Interesante si quieres narrativa sostenible; exigir evidencia de ejecución/costos.", "score_fit": 7}, {"distrito": "Pueblo Libre", "empresa": "AF Constructenia SAC", "tipo_empresa": "SAC", "proyecto": "Lara", "pisos": "9 + azotea; 2 sótanos", "departamentos": 26, "categoria_tamano": "Pequeño (21–30)", "rasgos": "Áreas comunes; viviendas sostenibles.", "solidez": "Media", "reputacion": "N/D", "negociacion": "Media", "fit_para_tu_proyecto": "Medio", "decision_tip": "Algo más 'pesado' pero aún manejable; sirve si buscas más experiencia.", "score_fit": 6}, {"distrito": "Pueblo Libre", "empresa": "Inmobiliaria Formentera SAC", "tipo_empresa": "SAC", "proyecto": "08 de Octubre", "pisos": "11", "departamentos": 26, "categoria_tamano": "Pequeño (21–30)", "rasgos": "Estacionamientos en sótano; locales boutique en 1er/2do piso.", "solidez": "Media", "reputacion": "Diseño moderno", "negociacion": "Media-baja", "fit_para_tu_proyecto": "Medio", "decision_tip": "Locales pueden mejorar flujo, pero ojo complejidad/permiso y cashflow.", "score_fit": 7}, {"distrito": "Pueblo Libre", "empresa": "Cumbres Andinas SAC", "tipo_empresa": "SAC", "proyecto": "San Sebastián", "pisos": "7", "departamentos": 20, "categoria_tamano": "Micro (16–20)", "rasgos": "Viviendas sostenibles con gas natural.", "solidez": "Media-baja", "reputacion": "N/D", "negociacion": "Media-baja", "fit_para_tu_proyecto": "Alto", "decision_tip": "Candidato 'ligero'; validar historial de entregas.", "score_fit": 10}, {"distrito": "Pueblo Libre", "empresa": "Grupo SR Inversiones SAC", "tipo_empresa": "SAC", "proyecto": "Lienzo Park & Living", "pisos": "11", "departamentos": 30, "categoria_tamano": "Pequeño (21–30)", "rasgos": "Frente al parque Daniel Hernández; áreas comunes; 1 y 3 dormitorios.", "solidez": "Media", "reputacion": "Buena por ubicación/amenities", "negociacion": "Media-alta (dentro de pequeños)", "fit_para_tu_proyecto": "Medio", "decision_tip": "Más poder de negociación; úsalo si necesitas 'marca' y tracción comercial.", "score_fit": 6}, {"distrito": "San Miguel", "empresa": "Inmobiliaria IBG S.A.C.", "tipo_empresa": "SAC", "proyecto": "Génesis XIII", "pisos": "5 + azotea; semisótano", "departamentos": 11, "categoria_tamano": "Micro (11–15)", "rasgos": "6 flats + 5 dúplex; 5 estacionamientos; ascensor; entrega 30/11/2026 (según sitio).", "solidez": "Baja-media (micro, pero bancarizable)", "reputacion": "N/D", "negociacion": "Baja", "fit_para_tu_proyecto": "Muy alto", "decision_tip": "Ideal para negociación dura; revisar músculo para terminar obra sin estrés.", "score_fit": 12}, {"distrito": "San Miguel", "empresa": "Renpau Grupo Inmobiliario / Opción Inmobiliaria", "tipo_empresa": "(por confirmar en SUNAT)", "proyecto": "Parque Runter", "pisos": "8", "departamentos": 14, "categoria_tamano": "Micro (11–15)", "rasgos": "Pet friendly; bicis; 7 estacionamientos auto; gas natural; ascensor; vigilancia 24/7.", "solidez": "Baja-media", "reputacion": "Orientación al cliente", "negociacion": "Baja", "fit_para_tu_proyecto": "Muy alto", "decision_tip": "Buenos amenities para vender; validar costos de seguridad/mantenimiento.", "score_fit": 12}, {"distrito": "San Miguel", "empresa": "Construye e Innova Vargas S.A. / Inmobiliaria COINVA SAC", "tipo_empresa": "SA / SAC (mixto, confirmar)", "proyecto": "Independencia 351", "pisos": "6 + azotea", "departamentos": 11, "categoria_tamano": "Micro (11–15)", "rasgos": "2 dúplex en último piso; estacionamiento autos y bicis; gas natural; acabados de lujo.", "solidez": "Baja-media", "reputacion": "Segmento medio-alto", "negociacion": "Baja", "fit_para_tu_proyecto": "Muy alto", "decision_tip": "Si buscas estándar de acabados, es referencia; ojo si tu proyecto es C+/B-.", "score_fit": 12}, {"distrito": "San Miguel", "empresa": "Altamira Promotora SAC", "tipo_empresa": "SAC", "proyecto": "Parque de la Virgen", "pisos": "5", "departamentos": 14, "categoria_tamano": "Micro (11–15)", "rasgos": "Balcones/terrazas; pet friendly; bicis; lavandería; estructura antisísmica; premios (Best Place to Live) según texto.", "solidez": "Baja-media", "reputacion": "Mejorada por premios", "negociacion": "Baja", "fit_para_tu_proyecto": "Alto", "decision_tip": "Si está casi vendido, negocias menos por equity; útil como benchmark.", "score_fit": 11}, {"distrito": "San Miguel", "empresa": "T & T Inmobiliaria SAC", "tipo_empresa": "SAC", "proyecto": "Trinidad", "pisos": "(no indicado)", "departamentos": 15, "categoria_tamano": "Micro (11–15)", "rasgos": "Proyecto esquina; azotea social; pet friendly; bicis; cerca Av. La Marina y Plaza San Miguel.", "solidez": "Baja", "reputacion": "N/D", "negociacion": "Baja", "fit_para_tu_proyecto": "Alto", "decision_tip": "Muy negociable; validar permisos/licencia y récord de entregas.", "score_fit": 9}, {"distrito": "San Miguel", "empresa": "Saval Constructores SAC (Grupo Saval)", "tipo_empresa": "SAC", "proyecto": "Valente", "pisos": "11", "departamentos": 21, "categoria_tamano": "Micro (16–20)", "rasgos": "10 estacionamientos; 2 sótanos; SUM; parrilla; lobby; zona bicis; respaldo BCP.", "solidez": "Media (reconocido)", "reputacion": "Mejor", "negociacion": "Media", "fit_para_tu_proyecto": "Medio", "decision_tip": "Más sólido pero más negociador; útil si quieres menor riesgo de ejecución.", "score_fit": 6}];
+
+function kpiBlock(label, value){
+  const d = document.createElement('div');
+  d.className='kpi';
+  d.innerHTML = `<div class="v">${value}</div><div class="l">${label}</div>`;
+  return d;
+}
+
+function badgeFor(tam){
+  if(tam.includes('Pequeño')) return 'badge';
+  return 'badge';
+}
+
+function renderKPIs(rows){
+  const k = document.getElementById('kpis');
+  k.innerHTML='';
+  const total = rows.length;
+  const pl = rows.filter(r=>r.distrito==='Pueblo Libre').length;
+  const sm = rows.filter(r=>r.distrito==='San Miguel').length;
+  const micro = rows.filter(r=>r.categoria_tamano.includes('Micro')).length;
+  k.appendChild(kpiBlock('Promotores listados', total));
+  k.appendChild(kpiBlock('Pueblo Libre', pl));
+  k.appendChild(kpiBlock('San Miguel', sm));
+  k.appendChild(kpiBlock('Micro (11–20)', micro));
+}
+
+function applyFilters(){
+  const d = document.getElementById('fDistrito').value;
+  const t = document.getElementById('fTam').value;
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  let rows = DATA.slice();
+
+  if(d) rows = rows.filter(r=>r.distrito===d);
+  if(t) rows = rows.filter(r=>r.categoria_tamano===t);
+  if(q) rows = rows.filter(r =>
+    (r.empresa||'').toLowerCase().includes(q) ||
+    (r.proyecto||'').toLowerCase().includes(q)
+  );
+
+  const sb = document.getElementById('sortBy').value;
+  rows.sort((a,b)=>{
+    if(sb==='empresa') return (a.empresa||'').localeCompare(b.empresa||'');
+    return (b[sb] ?? 0) - (a[sb] ?? 0);
+  });
+
+  renderKPIs(rows);
+  renderGrid(rows);
+}
+
+function renderGrid(rows){
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  rows.forEach(r=>{
+    const c = document.createElement('div');
+    c.className = 'card';
+    c.innerHTML = `
+      <div class="top">
+        <div>
+          <div class="title">${r.empresa}</div>
+          <div class="small">${r.distrito} · Proyecto: <b>${r.proyecto}</b></div>
+        </div>
+        <div class="badge">${r.categoria_tamano}</div>
+      </div>
+
+      <div class="row">
+        <div class="item"><div class="k"># Deptos</div><div class="v"><b>${r.departamentos}</b></div></div>
+        <div class="item"><div class="k">Pisos / sótanos</div><div class="v">${r.pisos}</div></div>
+        <div class="item"><div class="k">Tipo de empresa</div><div class="v">${r.tipo_empresa}</div></div>
+        <div class="item"><div class="k">Score (fit)</div><div class="v"><b>${r.score_fit}</b></div></div>
+      </div>
+
+      <div class="row">
+        <div class="item"><div class="k">Solidez</div><div class="v">${r.solidez}</div></div>
+        <div class="item"><div class="k">Negociación</div><div class="v">${r.negociacion}</div></div>
+        <div class="item"><div class="k">Reputación</div><div class="v">${r.reputacion}</div></div>
+        <div class="item"><div class="k">Fit para tu proyecto</div><div class="v">${r.fit_para_tu_proyecto}</div></div>
+      </div>
+
+      <div class="tip"><b>Rasgos del proyecto:</b> ${r.rasgos}</div>
+      <div class="tip"><b>Tip de decisión:</b> ${r.decision_tip}</div>
+    `;
+    g.appendChild(c);
+  });
+}
+
+document.getElementById('fDistrito').addEventListener('change', applyFilters);
+document.getElementById('fTam').addEventListener('change', applyFilters);
+document.getElementById('q').addEventListener('input', applyFilters);
+document.getElementById('sortBy').addEventListener('change', applyFilters);
+document.getElementById('reset').addEventListener('click', ()=>{
+  document.getElementById('fDistrito').value='';
+  document.getElementById('fTam').value='';
+  document.getElementById('q').value='';
+  document.getElementById('sortBy').value='score_fit';
+  applyFilters();
+});
+
+applyFilters();
+</script>
+</body>
+</html>
