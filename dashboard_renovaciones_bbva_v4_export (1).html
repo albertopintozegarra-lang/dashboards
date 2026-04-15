@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Renovaciones - BBVA (v4)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --blue-navy:#0033A0;
+  --blue-light:#00C2FF;
+  --turquoise:#00AEEF;
+  --orange:#F59E0B;
+  --white:#FFFFFF;
+  --border:#E6E9EE;
+  --text:#0B1220;
+  --muted:#6B7280;
+  --shadow:0 6px 18px rgba(3,16,53,.08);
+  --radius:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--white);color:var(--text);}
+header{padding:18px 22px;border-left:8px solid var(--turquoise);background:#fff;}
+header h1{margin:0;color:var(--blue-navy);font-size:20px}
+header p{margin:6px 0 0;color:var(--muted);font-size:13px}
+.container{max-width:1200px;margin:0 auto;padding:14px 18px 22px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;}
+.card.compact{padding:10px}
+.kpi{flex:1;min-width:180px;border-top:4px solid var(--blue-navy)}
+.kpi.warning{border-top-color:var(--orange)}
+.kpi.info{border-top-color:var(--turquoise)}
+.kpi strong{display:block;font-size:20px;color:var(--blue-navy)}
+.kpi span{display:block;margin-top:4px;color:var(--muted);font-size:12px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filters input,.filters select{padding:8px 10px;border-radius:10px;border:1px solid var(--border);font-size:13px;background:#fff}
+.btn{background:var(--turquoise);color:#fff;border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600;font-size:13px}
+.btn.secondary{background:#fff;color:var(--blue-navy);border:1px solid var(--blue-navy)}
+.btn.ghost{background:#fff;color:var(--muted);border:1px solid var(--border)}
+.btn:active{transform:translateY(1px)}
+.small{color:var(--muted);font-size:12px}
+.charts{display:flex;gap:12px;flex-wrap:wrap}
+.chartCard{flex:1 1 320px}
+canvas{max-height:150px !important;}
+.tableWrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px;border-bottom:1px solid var(--border);white-space:nowrap}
+th{background:#F5F9FF;color:var(--blue-navy);text-align:left;font-weight:700;font-size:12px}
+tr:hover{background:#F7FBFF}
+.link{color:var(--blue-navy);cursor:pointer;font-weight:700}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;color:#fff;font-weight:700}
+.b-ok{background:var(--blue-light)}
+.b-nr{background:var(--orange)}
+.b-err{background:#DC2626}
+.b-nrps{background:var(--turquoise)}
+/* Drawer */
+.backdrop{position:fixed;inset:0;background:rgba(2,6,23,.35);display:none;z-index:50}
+.drawer{position:fixed;right:0;top:0;height:100%;width:520px;max-width:95vw;background:#fff;border-left:1px solid var(--border);box-shadow:-18px 0 40px rgba(3,16,53,.18);transform:translateX(100%);transition:transform .22s ease;z-index:60;padding:14px;display:flex;flex-direction:column;gap:10px}
+.drawer.open{transform:translateX(0)}
+.backdrop.open{display:block}
+.drawerHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.drawerHeader h2{margin:0;color:var(--blue-navy);font-size:16px}
+.drawerHeader .meta{color:var(--muted);font-size:12px}
+.drawerBody{flex:1;overflow:auto;border:1px solid var(--border);border-radius:var(--radius)}
+.drawerFooter{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+select.pagesize{padding:6px 8px;border-radius:10px;border:1px solid var(--border);font-size:13px}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>Dashboard Renovaciones</h1>
+  <p>Tracking de respuestas Rímac (incluye <b>NO_RESPONDIDO</b>) + Drilldown por producto</p>
+</header>
+
+<div class="container">
+
+  <div class="card compact" style="margin-bottom:12px">
+    <div class="filters">
+      <label class="small">Desde <input type="date" id="dateFrom"></label>
+      <label class="small">Hasta <input type="date" id="dateTo"></label>
+      <select id="productFilter">
+        <option value="ALL">Todos los productos</option>
+        <option value="VEHICULAR">Vehicular</option>
+        <option value="HOGAR">Hogar</option>
+        <option value="SALUD">Salud</option>
+      </select>
+      <input type="text" id="search" placeholder="Buscar póliza o cliente…">
+      <button class="btn" id="apply">Aplicar</button>
+      <button class="btn secondary" id="reset">Reset</button>
+    </div>
+  </div>
+
+  <div class="row" style="margin-bottom:12px">
+    <div class="card kpi">
+      <strong id="k_total">0</strong>
+      <span>Total registros (universo filtrado)</span>
+    </div>
+    <div class="card kpi info">
+      <strong id="k_resp">0%</strong>
+      <span>% Respondidos (Rímac)</span>
+    </div>
+    <div class="card kpi warning">
+      <strong id="k_noresp">0</strong>
+      <span>NO_RESPONDIDO</span>
+    </div>
+    <div class="card kpi warning">
+      <strong id="k_risk">0</strong>
+      <span>En riesgo (D≤2 y NO_RESP)</span>
+    </div>
+  </div>
+
+  <div class="charts" style="margin-bottom:12px">
+    <div class="card chartCard">
+      <div class="small" style="margin-bottom:6px">Estado respuesta Rímac</div>
+      <canvas id="chartStatus"></canvas>
+    </div>
+    <div class="card chartCard">
+      <div class="small" style="margin-bottom:6px">Volumen por producto</div>
+      <canvas id="chartProd"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div>
+        <b style="color:var(--blue-navy)">Resumen por producto</b>
+        <div class="small">Haz clic en el producto para ver el detalle de registros</div>
+      </div>
+      <div class="small" id="summaryInfo"></div>
+    </div>
+
+    <div class="tableWrap" style="margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Total</th>
+            <th>OK</th>
+            <th>NO_RENOVAR</th>
+            <th>ERROR</th>
+            <th>NO_RESP</th>
+            <th>Riesgo (D≤2 y NO_RESP)</th>
+            <th>Impacto est. (S/)</th>
+          </tr>
+        </thead>
+        <tbody id="productRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawerHeader">
+    <div>
+      <h2 id="d_title">Detalle producto</h2>
+      <div class="meta" id="d_meta"></div>
+    </div>
+    <button class="btn ghost" id="close">Cerrar</button>
+  </div>
+
+  <div class="filters" style="padding:0 2px">
+    <select id="detailStatus">
+      <option value="ALL">Todos estados</option>
+      <option value="OK">OK</option>
+      <option value="NO_RENOVAR">NO_RENOVAR</option>
+      <option value="ERROR">ERROR</option>
+      <option value="NO_RESP">NO_RESP</option>
+    </select>
+    <input type="text" id="detailSearch" placeholder="Buscar póliza/cliente…">
+  </div>
+
+  <div class="drawerBody tableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Póliza</th>
+          <th>Cliente</th>
+          <th>Vence</th>
+          <th>Días</th>
+          <th>Rímac</th>
+          <th>BBVA</th>
+          <th>Impacto</th>
+        </tr>
+      </thead>
+      <tbody id="detailRows"></tbody>
+    </table>
+  </div>
+
+  <div class="drawerFooter">
+    <div class="left">
+      <button class="btn secondary" id="d_prev">Anterior</button>
+      <button class="btn secondary" id="d_next">Siguiente</button>
+      <span class="small">Página <b id="d_page">1</b></span>
+    </div>
+    <div class="right">
+      <span class="small">Filas por página</span>
+      <select class="pagesize" id="d_pagesize">
+        <option>10</option>
+        <option selected>20</option>
+        <option>50</option>
+      </select>
+      <span class="small" id="d_count"></span>
+    </div>
+  </div>
+</aside>
+
+<script>
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function choice(a){return a[Math.floor(Math.random()*a.length)]}
+
+const PRODUCTS = ["VEHICULAR","HOGAR","SALUD"];
+
+function genMock(n=260){
+  const out=[];
+  const today=new Date();
+  for(let i=0;i<n;i++){
+    const due=new Date(); due.setDate(today.getDate()+randInt(1,60));
+    const days=Math.ceil((due-today)/(1000*3600*24));
+    const product=choice(PRODUCTS);
+
+    const p=Math.random();
+    let rimac="OK";
+    if(p<0.25) rimac="NO_RESP";
+    else if(p<0.35) rimac="ERROR";
+    else if(p<0.60) rimac="NO_RENOVAR";
+    else rimac="OK";
+
+    let bbva="PENDIENTE";
+    if(rimac==="OK"){
+      bbva = (Math.random()<0.10) ? "ERROR" : "EJECUTADO";
+    } else {
+      bbva = (Math.random()<0.15) ? "ERROR" : "PENDIENTE";
+    }
+
+    const impact = randInt(50,1500);
+
+    out.push({
+      id:"CTR-"+(100000+i),
+      policy:"POL-"+(400000+i),
+      client:"Cliente "+(i+1),
+      product,
+      due: due.toISOString().slice(0,10),
+      days,
+      rimac,
+      bbva,
+      impact
+    });
+  }
+  return out;
+}
+
+let data = genMock(260);
+
+function getFiltered(){
+  const pf = document.getElementById("productFilter").value;
+  const q = (document.getElementById("search").value||"").toLowerCase();
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
+
+  return data.filter(r=>{
+    if(pf!=="ALL" && r.product!==pf) return false;
+    if(q && !(r.policy.toLowerCase().includes(q) || r.client.toLowerCase().includes(q))) return false;
+    if(from && r.due < from) return false;
+    if(to && r.due > to) return false;
+    return true;
+  });
+}
+
+let chartStatus, chartProd;
+
+function calcKPIs(rows){
+  const total = rows.length;
+  const responded = rows.filter(r=>r.rimac!=="NO_RESP").length;
+  const noresp = rows.filter(r=>r.rimac==="NO_RESP").length;
+  const risk = rows.filter(r=>r.rimac==="NO_RESP" && r.days<=2).length;
+
+  document.getElementById("k_total").textContent = total;
+  document.getElementById("k_resp").textContent = total ? Math.round((responded/total)*100)+"%" : "0%";
+  document.getElementById("k_noresp").textContent = noresp;
+  document.getElementById("k_risk").textContent = risk;
+}
+
+function renderCharts(rows){
+  const counts = {OK:0, NO_RENOVAR:0, ERROR:0, NO_RESP:0};
+  const byProd = {VEHICULAR:0, HOGAR:0, SALUD:0};
+  for(const r of rows){
+    counts[r.rimac] = (counts[r.rimac]||0)+1;
+    byProd[r.product] = (byProd[r.product]||0)+1;
+  }
+
+  const statusCtx = document.getElementById("chartStatus");
+  const prodCtx = document.getElementById("chartProd");
+
+  if(chartStatus) chartStatus.destroy();
+  if(chartProd) chartProd.destroy();
+
+  chartStatus = new Chart(statusCtx, {
+    type:"doughnut",
+    data:{
+      labels:["OK","NO_RENOVAR","ERROR","NO_RESP"],
+      datasets:[{
+        data:[counts.OK, counts.NO_RENOVAR, counts.ERROR, counts.NO_RESP],
+        backgroundColor:["#00C2FF","#F59E0B","#DC2626","#00AEEF"],
+        borderWidth:0
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{position:"bottom", labels:{boxWidth:10, boxHeight:10, font:{size:11}}}},
+      cutout:"65%"
+    }
+  });
+
+  chartProd = new Chart(prodCtx, {
+    type:"bar",
+    data:{
+      labels:["Vehicular","Hogar","Salud"],
+      datasets:[{
+        data:[byProd.VEHICULAR, byProd.HOGAR, byProd.SALUD],
+        backgroundColor:["#0033A0","#00AEEF","#00C2FF"],
+        borderRadius:8,
+        barPercentage:0.55,
+        categoryPercentage:0.6
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{beginAtZero:true, ticks:{precision:0, font:{size:11}}},
+        x:{ticks:{font:{size:11}}}
+      }
+    }
+  });
+}
+
+function badgeFor(state){
+  if(state==="OK") return '<span class="badge b-ok">OK</span>';
+  if(state==="NO_RENOVAR") return '<span class="badge b-nr">NO_RENOVAR</span>';
+  if(state==="ERROR") return '<span class="badge b-err">ERROR</span>';
+  return '<span class="badge b-nrps">NO_RESP</span>';
+}
+
+function renderProductSummary(rows){
+  const agg = {};
+  for(const p of PRODUCTS){
+    agg[p] = {product:p,total:0,OK:0,NO_RENOVAR:0,ERROR:0,NO_RESP:0,risk:0,impact:0};
+  }
+  for(const r of rows){
+    const a = agg[r.product];
+    a.total++;
+    a[r.rimac]++;
+    if(r.rimac==="NO_RESP" && r.days<=2) a.risk++;
+    a.impact += r.impact;
+  }
+
+  const tbody = document.getElementById("productRows");
+  tbody.innerHTML = "";
+  const items = Object.values(agg).filter(x=>x.total>0);
+
+  document.getElementById("summaryInfo").textContent =
+    "Productos con data: "+items.length+" · Total registros: "+rows.length;
+
+  for(const it of items){
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="link" data-product="${it.product}">${it.product}</span></td>
+      <td>${it.total}</td>
+      <td>${it.OK}</td>
+      <td>${it.NO_RENOVAR}</td>
+      <td>${it.ERROR}</td>
+      <td>${it.NO_RESP}</td>
+      <td>${it.risk}</td>
+      <td>${it.impact.toLocaleString("es-PE")}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  Array.from(document.querySelectorAll(".link")).forEach(el=>{
+    el.addEventListener("click",()=>openDetail(el.dataset.product));
+  });
+}
+
+let detailProduct = null;
+let dPage = 1;
+let dPageSize = 20;
+
+function getDetailRows(){
+  const base = getFiltered().filter(r=>r.product===detailProduct);
+  const st = document.getElementById("detailStatus").value;
+  const q = (document.getElementById("detailSearch").value||"").toLowerCase();
+  return base.filter(r=>{
+    if(st!=="ALL" && r.rimac!==st) return false;
+    if(q && !(r.policy.toLowerCase().includes(q) || r.client.toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+function renderDetail(){
+  const rows = getDetailRows();
+  const total = rows.length;
+  const pages = Math.max(1, Math.ceil(total/dPageSize));
+  if(dPage>pages) dPage = pages;
+
+  const start = (dPage-1)*dPageSize;
+  const pageRows = rows.slice(start, start+dPageSize);
+
+  const tbody = document.getElementById("detailRows");
+  tbody.innerHTML = "";
+  for(const r of pageRows){
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.policy}</td>
+      <td>${r.client}</td>
+      <td>${r.due}</td>
+      <td>${r.days}</td>
+      <td>${badgeFor(r.rimac)}</td>
+      <td>${r.bbva}</td>
+      <td>S/ ${r.impact.toLocaleString("es-PE")}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById("d_page").textContent = dPage;
+  document.getElementById("d_count").textContent =
+    "Mostrando "+(total? (start+1):0)+"-"+Math.min(start+pageRows.length,total)+" de "+total;
+}
+
+function openDetail(product){
+  detailProduct = product;
+  dPage = 1;
+  dPageSize = parseInt(document.getElementById("d_pagesize").value,10);
+
+  const rows = getFiltered().filter(r=>r.product===detailProduct);
+  const noresp = rows.filter(r=>r.rimac==="NO_RESP").length;
+  const risk = rows.filter(r=>r.rimac==="NO_RESP" && r.days<=2).length;
+
+  document.getElementById("d_title").textContent = "Detalle — "+product;
+  document.getElementById("d_meta").textContent =
+    "Registros: "+rows.length+" · NO_RESP: "+noresp+" · Riesgo (D≤2): "+risk;
+
+  document.getElementById("backdrop").classList.add("open");
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("detailStatus").value = "ALL";
+  document.getElementById("detailSearch").value = "";
+  renderDetail();
+}
+
+function closeDetail(){
+  document.getElementById("backdrop").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open");
+}
+
+document.getElementById("close").addEventListener("click",closeDetail);
+document.getElementById("backdrop").addEventListener("click",closeDetail);
+
+document.getElementById("d_prev").addEventListener("click",()=>{ if(dPage>1){ dPage--; renderDetail(); } });
+document.getElementById("d_next").addEventListener("click",()=>{
+  const total = getDetailRows().length;
+  const pages = Math.max(1, Math.ceil(total/dPageSize));
+  if(dPage<pages){ dPage++; renderDetail(); }
+});
+document.getElementById("d_pagesize").addEventListener("change",e=>{
+  dPageSize = parseInt(e.target.value,10); dPage=1; renderDetail();
+});
+document.getElementById("detailStatus").addEventListener("change",()=>{ dPage=1; renderDetail(); });
+document.getElementById("detailSearch").addEventListener("input",()=>{ dPage=1; renderDetail(); });
+
+function renderAll(){
+  const rows = getFiltered();
+  calcKPIs(rows);
+  renderCharts(rows);
+  renderProductSummary(rows);
+}
+
+document.getElementById("apply").addEventListener("click",renderAll);
+document.getElementById("reset").addEventListener("click",()=>{
+  document.getElementById("dateFrom").value="";
+  document.getElementById("dateTo").value="";
+  document.getElementById("productFilter").value="ALL";
+  document.getElementById("search").value="";
+  renderAll();
+});
+
+renderAll();
+</script>
+
+<script>
+(function(){
+  function mkExportButton(){
+    try {
+      var right = document.querySelector('.drawerFooter .right');
+      if(!right) return;
+      if(document.getElementById('d_export')) return;
+      var btn = document.createElement('button');
+      btn.id = 'd_export';
+      btn.className = 'btn ghost';
+      btn.textContent = 'Exportar CSV';
+      var dcount = document.getElementById('d_count');
+      if(dcount && dcount.parentNode === right) {
+        right.insertBefore(btn, dcount);
+      } else {
+        right.appendChild(btn);
+      }
+      btn.addEventListener('click', function(){
+        if(typeof getDetailRows !== 'function') {
+          alert('Funcionalidad no disponible en este momento.');
+          return;
+        }
+        var rows = getDetailRows();
+        if(!rows || !rows.length){
+          alert('No hay registros que exportar para este producto/estado.');
+          return;
+        }
+        var headers = ['policy','client','due','days','rimac','bbva','impact'];
+        var csv = headers.join(',') + '\n';
+        rows.forEach(function(r){
+          var vals = [
+            r.policy, r.client, r.due, r.days, r.rimac, r.bbva, ('S/ ' + (r.impact||0))
+          ].map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; });
+          csv += vals.join(',') + '\n';
+        });
+        var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        var fileName = 'detalle_' + (detailProduct||'producto') + '.csv';
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1000);
+      });
+    } catch(e){
+      console.error('No se pudo añadir el botón Exportar CSV:', e);
+    }
+  }
+  window.addEventListener('load', function(){ setTimeout(mkExportButton, 300); });
+  var origOpen = window.openDetail;
+  if(typeof origOpen === 'function'){
+    window.openDetail = function(){ origOpen.apply(this, arguments); setTimeout(mkExportButton, 50); };
+  }
+})();
+</script>
+</body>
+</html>
+
