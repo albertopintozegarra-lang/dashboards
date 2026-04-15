@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ER Conceptual - Renovaciones (BBVA ↔ Rímac)</title>
+  <!-- Mermaid (renders diagrams from text) -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root{
+      /* BBVA-ish palette */
+      --bbva-dark:#0033A0;
+      --bbva-mid:#0066CC;
+      --bbva-light:#00AEEF;
+      --bg:#ffffff;
+      --text:#0b1220;
+      --muted:#6b7280;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+    body{margin:0;background:var(--bg);color:var(--text);padding:20px}
+    .container{max-width:1200px;margin:0 auto}
+    header{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+    .logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--bbva-dark),var(--bbva-mid));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+    h1{font-size:18px;margin:0}
+    .sub{color:var(--muted);font-size:13px;margin-top:2px}
+    .card{background:#fff;border:1px solid #eef2f7;border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(3,16,53,.06)}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .row .card{flex:1;min-width:320px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#eff6ff;color:var(--bbva-dark);font-size:12px;font-weight:600}
+    .btn{background:var(--bbva-mid);color:#fff;border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600}
+    textarea{width:100%;min-height:210px;resize:vertical;border:1px solid #e6e9ee;border-radius:10px;padding:10px;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:12px}
+    .hint{color:var(--muted);font-size:12px;margin-top:8px}
+    /* Mermaid theme overrides */
+    .mermaid{background:#ffffff;border-radius:12px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">BB</div>
+      <div>
+        <h1>Modelo ER conceptual — Renovaciones</h1>
+        <div class="sub">Diagrama renderizado con Mermaid (HTML + JavaScript). Edita el texto y vuelve a renderizar.</div>
+      </div>
+      <div style="margin-left:auto" class="pill">Conceptual · Paleta BBVA</div>
+    </header>
+
+    <div class="row">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <strong>Definición del diagrama (Mermaid)</strong>
+          <button class="btn" id="renderBtn">Renderizar</button>
+        </div>
+        <div class="hint">Tip: puedes cambiar cardinalidades o nombres. Mantén el formato <code>erDiagram</code>.</div>
+        <textarea id="src"></textarea>
+      </div>
+
+      <div class="card">
+        <strong>Diagrama</strong>
+        <div class="hint">Si no se ve, revisa la sintaxis (o vuelve a renderizar).</div>
+        <div id="diagram" class="mermaid" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <strong>Lectura rápida del caso</strong>
+      <div class="hint">
+        <ul style="margin:8px 0 0 18px;color:var(--muted);font-size:13px">
+          <li><b>CONTRATO</b> es la póliza en BBVA.</li>
+          <li><b>ENVÍO</b> y <b>ENVÍO_DETALLE</b> representan lo que BBVA manda a Rímac por corrida/cosecha.</li>
+          <li><b>RESPUESTA</b> y <b>RESPUESTA_DETALLE</b> representan lo que devuelve Rímac (o la ausencia de respuesta).</li>
+          <li><b>EJECUCIÓN_BBVA</b> valida si el evento de renovación se ejecutó correctamente.</li>
+          <li><b>GESTIÓN</b> soporta el “Resuelto / seguimiento”.</li>
+          <li><b>SNAPSHOT</b> permite tendencia diaria y auditoría.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mermaid init with a BBVA-ish theme
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#EFF6FF',
+        primaryTextColor: '#0b1220',
+        primaryBorderColor: '#CFE9FF',
+        lineColor: '#0066CC',
+        secondaryColor: '#E6F7FF',
+        tertiaryColor: '#FFFFFF',
+        fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial'
+      }
+    });
+
+    const DEFAULT = `erDiagram
+  CONTRATO ||--o{ ENVIO_RENOVACION_DETALLE : "aparece_en"
+  ENVIO_RENOVACION ||--|{ ENVIO_RENOVACION_DETALLE : "contiene"
+
+  RESPUESTA_RIMAC ||--|{ RESPUESTA_RIMAC_DETALLE : "incluye"
+
+  %% Relación conceptual (respuesta puede no existir)
+  ENVIO_RENOVACION_DETALLE ||--o| RESPUESTA_RIMAC_DETALLE : "tiene_respuesta"
+
+  %% Ejecución y gestión (por ciclo/caso)
+  CONTRATO ||--o{ EJECUCION_RENOVACION_BBVA : "ejecuta"
+  CONTRATO ||--o{ GESTION_OPERATIVA : "gestiona"
+  CONTRATO ||--o{ SNAPSHOT_ALERTA : "fotografia_diaria"
+
+  %% Atributos conceptuales (no exhaustivos)
+  CONTRATO {
+    string ContratoBBVA
+    string NumeroPoliza
+    string Producto
+    date   FinVigencia
+    string Estado
+    number PrimaEstimada
+  }
+
+  ENVIO_RENOVACION {
+    string EnvioId
+    date   FechaProceso
+    string Cosecha
+    string ArchivoEnvio
+    string EstadoEnvio
+  }
+
+  ENVIO_RENOVACION_DETALLE {
+    string EnvioId
+    string ContratoBBVA
+    date   FinVigencia
+    date   FechaLimiteRespuesta
+    number DiasParaVencer
+    string EstadoRegistro
+  }
+
+  RESPUESTA_RIMAC {
+    string RespuestaId
+    date   FechaRecepcion
+    string ArchivoRespuesta
+    string EstadoRespuesta
+  }
+
+  RESPUESTA_RIMAC_DETALLE {
+    string RespuestaId
+    string ContratoBBVA
+    string ResultadoRenovacion
+    string Motivo
+    string EstadoValidacion
+  }
+
+  EJECUCION_RENOVACION_BBVA {
+    string ContratoBBVA
+    string Ciclo
+    date   FechaEjecucion
+    string Resultado
+    string Error
+  }
+
+  GESTION_OPERATIVA {
+    string ContratoBBVA
+    string Caso
+    string EstadoGestion
+    string AsignadoA
+    date   FechaUltimaAccion
+  }
+
+  SNAPSHOT_ALERTA {
+    date   FechaSnapshot
+    string ContratoBBVA
+    string EstadoRimac
+    string EstadoBBVA
+    string Severidad
+    number Impacto
+  }`;
+
+    const src = document.getElementById('src');
+    src.value = DEFAULT;
+
+    async function render(){
+      const el = document.getElementById('diagram');
+      el.textContent = src.value;
+      // Force mermaid to re-process the element
+      await mermaid.run({ querySelector: '#diagram' });
+    }
+
+    document.getElementById('renderBtn').addEventListener('click',()=>{
+      render().catch(err=>{
+        console.error(err);
+        alert('Error renderizando. Revisa la sintaxis Mermaid.');
+      });
+    });
+
+    // initial
+    render();
+  </script>
+</body>
+</html>
